@@ -69,6 +69,10 @@
             z-index: 1;
         }
 
+        .admin-mode .container {
+            max-width: 1000px;
+        }
+
         header {
             text-align: center;
             margin-bottom: 3rem;
@@ -318,6 +322,10 @@
             animation: fadeInUp 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) 0.4s backwards;
         }
 
+        .admin-mode .orders-section {
+            margin-top: 2rem;
+        }
+
         .orders-section h2 {
             font-family: 'Bebas Neue', sans-serif;
             font-size: 2.5rem;
@@ -327,11 +335,20 @@
             text-align: center;
         }
 
+        .admin-mode .orders-section h2 {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+
         .orders-list {
             background: white;
             border-radius: 20px;
             padding: 2rem;
             box-shadow: 0 20px 60px var(--shadow);
+        }
+
+        .admin-mode .orders-list {
+            padding: 1.5rem;
         }
 
         .order-item {
@@ -355,6 +372,40 @@
             opacity: 0.6;
             border-left-color: #4CAF50;
             background: #F1F8F4;
+        }
+
+        /* Compact admin view */
+        .admin-mode .order-item {
+            padding: 1rem;
+            margin-bottom: 0.8rem;
+        }
+
+        .admin-mode .order-time {
+            font-size: 1.3rem;
+            margin-bottom: 0.3rem;
+        }
+
+        .admin-mode .order-details {
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .admin-mode .status-badge {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.6rem;
+            margin-top: 0.3rem;
+        }
+
+        .admin-mode .order-actions {
+            margin-top: 0.5rem;
+            gap: 0.4rem;
+        }
+
+        .admin-mode .btn-status,
+        .admin-mode .btn-edit,
+        .admin-mode .btn-delete {
+            padding: 0.4rem 0.8rem;
+            font-size: 0.8rem;
         }
 
         .order-time {
@@ -667,6 +718,49 @@
             display: block;
         }
 
+        .auto-delete-toggle {
+            position: fixed;
+            top: 4rem;
+            left: 50%;
+            transform: translateX(-50%);
+            background: white;
+            padding: 0.6rem 1.2rem;
+            border-radius: 20px;
+            font-weight: 600;
+            display: none;
+            z-index: 998;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            border: 2px solid var(--primary);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .auto-delete-toggle:hover {
+            background: #FFF5F0;
+            transform: translateX(-50%) translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .auto-delete-toggle.show {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .auto-delete-toggle input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            accent-color: var(--primary);
+        }
+
+        .auto-delete-toggle label {
+            margin: 0;
+            cursor: pointer;
+            color: var(--dark);
+            font-size: 0.9rem;
+        }
+
         /* "Saját rendelésem" hidden in admin mode, admin section only visible in admin mode */
         .admin-only-section {
             display: none;
@@ -719,6 +813,7 @@
 
         .admin-mode .orders-tabs {
             display: flex;
+            margin-bottom: 1rem;
         }
 
         .tab-button {
@@ -732,6 +827,11 @@
             font-family: 'Crimson Pro', serif;
             cursor: pointer;
             transition: all 0.3s ease;
+        }
+
+        .admin-mode .tab-button {
+            padding: 0.6rem 1.5rem;
+            font-size: 0.9rem;
         }
 
         .tab-button.active {
@@ -763,30 +863,49 @@
 
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            grid-template-columns: repeat(4, 1fr);
             gap: 1rem;
             margin-bottom: 2rem;
         }
 
+        @media (max-width: 768px) {
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
         .stat-card {
             background: linear-gradient(135deg, #FFF9F0 0%, #FFF5E6 100%);
-            padding: 1.5rem;
+            padding: 1.2rem;
             border-radius: 12px;
             border-left: 4px solid var(--accent);
             box-shadow: 0 2px 8px var(--shadow);
         }
 
+        .admin-mode .stat-card {
+            padding: 1rem;
+        }
+
         .stat-card h3 {
             font-family: 'Bebas Neue', sans-serif;
-            font-size: 2.5rem;
+            font-size: 2.2rem;
             color: var(--primary);
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.3rem;
+        }
+
+        .admin-mode .stat-card h3 {
+            font-size: 2rem;
+            margin-bottom: 0.2rem;
         }
 
         .stat-card p {
             color: var(--dark);
             font-weight: 600;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
+        }
+
+        .admin-mode .stat-card p {
+            font-size: 0.8rem;
         }
 
         .ingredients-list {
@@ -1065,6 +1184,10 @@
     </div>
 
     <div class="admin-indicator" id="adminIndicator">🔐 Admin mód aktív</div>
+    <div class="auto-delete-toggle" id="autoDeleteToggle">
+        <input type="checkbox" id="autoDeleteCheckbox">
+        <label for="autoDeleteCheckbox">🗑️ Automatikus törlés átvételkor</label>
+    </div>
     <div class="admin-panel">
         <button class="admin-toggle" id="adminToggle" title="Admin bejelentkezés">🔐</button>
     </div>
@@ -1175,6 +1298,12 @@
         const ADMIN_PASSWORD = 'admin123';
 
         const MAX_SLOTS = 4;
+        
+        // Track order statuses for change detection
+        let previousOrderStatuses = {};
+        
+        // Auto-delete completed orders setting
+        let autoDeleteCompleted = false;
 
         // slotCounts: { "17:30": 2, "17:40": 4, ... }
         function generateTimeSlots(slotCounts = {}) {
@@ -1391,6 +1520,29 @@
                 myList.innerHTML = '<div class="empty-state">Még nem adtál le rendelést erről az eszközről.</div>';
                 return;
             }
+
+            // Check for status changes and show notifications
+            myOrders.forEach(order => {
+                const orderKey = `${order.time}_${order.slotKey}`;
+                const currentStatus = getStatus(order);
+                const previousStatus = previousOrderStatuses[orderKey];
+                
+                // Only show notification if status actually changed (not on initial load)
+                if (previousStatus && previousStatus !== currentStatus) {
+                    const statusMessages = {
+                        preparing: `🍳 Állapot frissítve: ${order.time}-es rendelésed készülőben! (kb. 10-15 perc)`,
+                        completed: `✅ Állapot frissítve: ${order.time}-es rendelésed kész, átveheted!`,
+                        pending: `⏳ Állapot frissítve: ${order.time}-es rendelésed visszaállítva függőben állapotba`
+                    };
+                    
+                    if (statusMessages[currentStatus]) {
+                        showToast(statusMessages[currentStatus]);
+                    }
+                }
+                
+                // Update tracked status
+                previousOrderStatuses[orderKey] = currentStatus;
+            });
 
             myList.innerHTML = myOrders.map(order => {
                 const extras = [order.extraTopping1, order.extraTopping2, order.extraTopping3]
@@ -1671,13 +1823,22 @@
                     const order = snapshot.val();
                     order.status = toStatus;
                     order.completed = (toStatus === 'completed');
-                    await set(orderRef, order);
-                    const msgs = {
-                        preparing: '🍳 Rendelés: Készülőben',
-                        completed: '✅ Rendelés: Kész',
-                        pending: '↩ Rendelés visszaállítva'
-                    };
-                    showToast(msgs[toStatus]);
+                    
+                    // If status is completed and auto-delete is enabled, archive immediately
+                    if (toStatus === 'completed' && autoDeleteCompleted) {
+                        order.archived = true;
+                        order.archivedAt = Date.now();
+                        await set(orderRef, order);
+                        showToast('✅ Rendelés kész és automatikusan archiválva');
+                    } else {
+                        await set(orderRef, order);
+                        const msgs = {
+                            preparing: '🍳 Rendelés: Készülőben',
+                            completed: '✅ Rendelés: Kész',
+                            pending: '↩ Rendelés visszaállítva'
+                        };
+                        showToast(msgs[toStatus]);
+                    }
                 }
             } catch (error) {
                 console.error('Error updating status:', error);
@@ -1852,11 +2013,13 @@
             if (enable) {
                 document.body.classList.add('admin-mode');
                 document.getElementById('adminIndicator').classList.add('show');
+                document.getElementById('autoDeleteToggle').classList.add('show');
                 document.getElementById('adminToggle').textContent = '🔓';
                 showToast('🔐 Admin mód aktiválva');
             } else {
                 document.body.classList.remove('admin-mode');
                 document.getElementById('adminIndicator').classList.remove('show');
+                document.getElementById('autoDeleteToggle').classList.remove('show');
                 document.getElementById('adminToggle').textContent = '🔐';
                 showToast('👋 Admin mód kikapcsolva');
             }
@@ -1949,6 +2112,14 @@
             } catch (error) {
                 console.error('Error updating order:', error);
                 showToast('❌ Hiba történt a módosítás során: ' + error.message);
+            }
+        });
+        document.getElementById('autoDeleteCheckbox').addEventListener('change', (e) => {
+            autoDeleteCompleted = e.target.checked;
+            if (autoDeleteCompleted) {
+                showToast('✅ Automatikus törlés bekapcsolva - a "Kész" rendelések automatikusan archiválódnak');
+            } else {
+                showToast('⏸️ Automatikus törlés kikapcsolva');
             }
         });
         document.getElementById('activeTab').addEventListener('click', () => {
