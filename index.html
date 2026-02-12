@@ -667,13 +667,21 @@
             display: block;
         }
 
-        /* "Saját rendelésem" always visible, admin section only in admin mode */
+        /* "Saját rendelésem" hidden in admin mode, admin section only visible in admin mode */
         .admin-only-section {
             display: none;
         }
 
         .admin-mode .admin-only-section {
             display: block;
+        }
+
+        #myOrdersSection {
+            display: block;
+        }
+
+        .admin-mode #myOrdersSection {
+            display: none;
         }
 
         .my-order-item {
