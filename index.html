@@ -1,10 +1,12 @@
 <!DOCTYPE html>
 <html lang="hu">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pizzéria Rendelés</title>
-    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Crimson+Pro:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Crimson+Pro:wght@400;600&display=swap"
+        rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -37,8 +39,7 @@
             left: -50%;
             width: 200%;
             height: 200%;
-            background: 
-                radial-gradient(circle at 20% 50%, rgba(212, 66, 63, 0.08) 0%, transparent 50%),
+            background: radial-gradient(circle at 20% 50%, rgba(212, 66, 63, 0.08) 0%, transparent 50%),
                 radial-gradient(circle at 80% 80%, rgba(232, 161, 59, 0.06) 0%, transparent 50%);
             animation: floatBg 20s ease-in-out infinite;
             pointer-events: none;
@@ -46,9 +47,19 @@
         }
 
         @keyframes floatBg {
-            0%, 100% { transform: translate(0, 0) rotate(0deg); }
-            33% { transform: translate(2%, 2%) rotate(1deg); }
-            66% { transform: translate(-2%, 1%) rotate(-1deg); }
+
+            0%,
+            100% {
+                transform: translate(0, 0) rotate(0deg);
+            }
+
+            33% {
+                transform: translate(2%, 2%) rotate(1deg);
+            }
+
+            66% {
+                transform: translate(-2%, 1%) rotate(-1deg);
+            }
         }
 
         .container {
@@ -69,6 +80,7 @@
                 opacity: 0;
                 transform: translateY(-30px);
             }
+
             to {
                 opacity: 1;
                 transform: translateY(0);
@@ -80,8 +92,7 @@
             font-size: clamp(3rem, 8vw, 5.5rem);
             color: var(--primary);
             letter-spacing: 0.05em;
-            text-shadow: 3px 3px 0 var(--accent),
-                         6px 6px 0 rgba(0,0,0,0.1);
+            text-shadow: 3px 3px 0 var(--accent), 6px 6px 0 rgba(0, 0, 0, 0.1);
             margin-bottom: 0.5rem;
             line-height: 0.9;
         }
@@ -98,9 +109,7 @@
             background: white;
             border-radius: 20px;
             padding: 2.5rem;
-            box-shadow: 
-                0 20px 60px var(--shadow),
-                0 0 0 1px rgba(212, 66, 63, 0.1);
+            box-shadow: 0 20px 60px var(--shadow), 0 0 0 1px rgba(212, 66, 63, 0.1);
             animation: fadeInUp 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) 0.2s backwards;
             position: relative;
             overflow: hidden;
@@ -119,8 +128,15 @@
         }
 
         @keyframes gradientSlide {
-            0%, 100% { background-position: 0% 0%; }
-            50% { background-position: 100% 0%; }
+
+            0%,
+            100% {
+                background-position: 0% 0%;
+            }
+
+            50% {
+                background-position: 100% 0%;
+            }
         }
 
         @keyframes fadeInUp {
@@ -128,6 +144,7 @@
                 opacity: 0;
                 transform: translateY(30px);
             }
+
             to {
                 opacity: 1;
                 transform: translateY(0);
@@ -142,7 +159,7 @@
             color: white;
             padding: 1rem 1.5rem;
             border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
             font-weight: 600;
             z-index: 1000;
             animation: toastIn 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
@@ -154,6 +171,7 @@
                 opacity: 0;
                 transform: translateX(100%) scale(0.8);
             }
+
             to {
                 opacity: 1;
                 transform: translateX(0) scale(1);
@@ -323,11 +341,20 @@
             border-radius: 8px;
             margin-bottom: 1rem;
             transition: all 0.3s ease;
+            display: flex;
+            gap: 1rem;
+            align-items: flex-start;
         }
 
         .order-item:hover {
             transform: translateX(5px);
             box-shadow: 0 4px 12px var(--shadow);
+        }
+
+        .order-item.completed {
+            opacity: 0.6;
+            border-left-color: #4CAF50;
+            background: #F1F8F4;
         }
 
         .order-time {
@@ -344,6 +371,162 @@
 
         .order-details strong {
             color: var(--primary);
+        }
+
+        .order-checkbox {
+            display: none;
+        }
+
+        /* replaced by status button */
+        .order-content {
+            flex: 1;
+        }
+
+        /* Status badge shown on every order card */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            margin-top: 0.5rem;
+            letter-spacing: 0.03em;
+        }
+
+        .status-badge.pending {
+            background: #F0F0F0;
+            color: #888;
+        }
+
+        .status-badge.preparing {
+            background: #FFF3CD;
+            color: #856404;
+        }
+
+        .status-badge.completed {
+            background: #D4EDDA;
+            color: #155724;
+        }
+
+        /* Cycle button — admin only */
+        .btn-status {
+            padding: 0.45rem 1rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: 'Crimson Pro', serif;
+            transition: all 0.2s ease;
+            display: none;
+        }
+
+        .admin-mode .btn-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .btn-status.to-preparing {
+            background: #FFF3CD;
+            color: #856404;
+        }
+
+        .btn-status.to-preparing:hover {
+            background: #FFE69C;
+        }
+
+        .btn-status.to-completed {
+            background: #D4EDDA;
+            color: #155724;
+        }
+
+        .btn-status.to-completed:hover {
+            background: #B8DFC6;
+        }
+
+        .btn-status.to-pending {
+            background: #F0F0F0;
+            color: #888;
+        }
+
+        .btn-status.to-pending:hover {
+            background: #E0E0E0;
+        }
+
+        .order-item.preparing {
+            border-left-color: #FFC107;
+            background: #FFFDF0;
+        }
+
+        .order-item.completed {
+            opacity: 0.6;
+            border-left-color: #4CAF50;
+            background: #F1F8F4;
+        }
+
+        .order-actions {
+            display: flex;
+            margin-top: 0.8rem;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .order-actions .btn-delete {
+            display: none;
+        }
+
+        .admin-mode .order-actions .btn-delete {
+            display: block;
+        }
+
+        .btn-delete {
+            padding: 0.5rem 1rem;
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Crimson Pro', serif;
+            /* Fix: prevent click from hitting child text nodes */
+            pointer-events: auto;
+        }
+
+        .btn-delete:hover {
+            background: #c82333;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+        }
+
+        .btn-edit {
+            padding: 0.5rem 1rem;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Crimson Pro', serif;
+        }
+
+        .btn-edit:hover {
+            background: #0056b3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+        }
+
+        /* CRITICAL FIX: prevent emoji/text children from intercepting clicks */
+        .btn-delete *,
+        .btn-edit * {
+            pointer-events: none;
         }
 
         .empty-state {
@@ -397,8 +580,13 @@
         }
 
         @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
         }
 
         .login-box {
@@ -416,6 +604,7 @@
                 transform: scale(0.8);
                 opacity: 0;
             }
+
             to {
                 transform: scale(1);
                 opacity: 1;
@@ -460,48 +649,6 @@
             background: #777;
         }
 
-        .order-item {
-            padding: 1.5rem;
-            border-left: 4px solid var(--accent);
-            background: #FFFAF5;
-            border-radius: 8px;
-            margin-bottom: 1rem;
-            transition: all 0.3s ease;
-            display: flex;
-            gap: 1rem;
-            align-items: flex-start;
-        }
-
-        .order-item.completed {
-            opacity: 0.6;
-            border-left-color: #4CAF50;
-            background: #F1F8F4;
-        }
-
-        .order-checkbox {
-            flex-shrink: 0;
-            width: 28px;
-            height: 28px;
-            cursor: pointer;
-            accent-color: #4CAF50;
-            display: none;
-        }
-
-        .admin-mode .order-checkbox {
-            display: block;
-        }
-
-        .order-content {
-            flex: 1;
-        }
-
-        .order-status {
-            font-weight: 600;
-            color: #4CAF50;
-            margin-top: 0.5rem;
-            font-size: 0.95rem;
-        }
-
         .admin-indicator {
             position: fixed;
             top: 1rem;
@@ -519,6 +666,159 @@
 
         .admin-indicator.show {
             display: block;
+        }
+
+        /* "Saját rendelésem" always visible, admin section only in admin mode */
+        .admin-only-section {
+            display: none;
+        }
+
+        .admin-mode .admin-only-section {
+            display: block;
+        }
+
+        .my-order-item {
+            padding: 1.5rem;
+            border-left: 4px solid var(--primary);
+            background: #FFF5F0;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+
+        .my-order-item.completed {
+            border-left-color: #4CAF50;
+            background: #F1F8F4;
+            opacity: 0.7;
+        }
+
+        .my-order-badge {
+            display: inline-block;
+            background: var(--primary);
+            color: white;
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 0.2rem 0.6rem;
+            border-radius: 20px;
+            margin-bottom: 0.5rem;
+            letter-spacing: 0.05em;
+        }
+
+        .orders-tabs {
+            display: none;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .admin-mode .orders-tabs {
+            display: flex;
+        }
+
+        .tab-button {
+            padding: 0.8rem 2rem;
+            background: white;
+            color: var(--dark);
+            border: 2px solid var(--primary);
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            font-family: 'Crimson Pro', serif;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .tab-button.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        .tab-button:hover:not(.active) {
+            background: #FFF5F0;
+        }
+
+        #archiveList {
+            display: none;
+        }
+
+        .admin-mode #archiveList.active {
+            display: block;
+        }
+
+        .admin-mode #ordersList.active {
+            display: block;
+        }
+
+        .admin-mode #ordersList:not(.active) {
+            display: none;
+        }
+
+        .archive-item {
+            padding: 1.5rem;
+            border-left: 4px solid #999;
+            background: #F5F5F5;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            opacity: 0.8;
+        }
+
+        .archive-item .order-time {
+            color: #666;
+        }
+
+        .archive-date {
+            font-size: 0.85rem;
+            color: #999;
+            margin-top: 0.5rem;
+        }
+
+        .edit-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1002;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .edit-modal.show {
+            display: flex;
+        }
+
+        .edit-box {
+            background: white;
+            padding: 2.5rem;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            animation: scaleIn 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        .edit-box h2 {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 2rem;
+            color: var(--primary);
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        .edit-buttons {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .edit-buttons button {
+            flex: 1;
+            padding: 0.9rem;
+            font-size: 1rem;
         }
 
         @media (max-width: 640px) {
@@ -553,34 +853,31 @@
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         <header>
             <h1>Pizzéria</h1>
             <div class="subtitle">Online Rendelés</div>
         </header>
-
         <div class="form-card">
             <form id="pizzaForm">
                 <div class="form-group">
                     <label for="name">Név *</label>
                     <input type="text" id="name" required placeholder="Add meg a neved">
                 </div>
-
                 <div class="form-group">
                     <label for="time">Átvétel időpontja *</label>
                     <select id="time" required>
                         <option value="">Válassz időpontot...</option>
                     </select>
                 </div>
-
                 <div class="form-group">
                     <div class="checkbox-group">
                         <input type="checkbox" id="lactoseFree">
                         <label for="lactoseFree">Laktózmentes</label>
                     </div>
                 </div>
-
                 <div class="form-group">
                     <label for="baseTopping">Alap feltét *</label>
                     <select id="baseTopping" required>
@@ -590,7 +887,6 @@
                         <option value="tonhal">Tonhal</option>
                     </select>
                 </div>
-
                 <div class="form-group">
                     <label>Plusz feltétek (opcionális)</label>
                     <div class="toppings-grid">
@@ -629,25 +925,35 @@
                         </select>
                     </div>
                 </div>
-
                 <button type="submit">Rendelés leadása</button>
             </form>
         </div>
+        <div class="orders-section" id="myOrdersSection">
+            <h2>Saját rendelésem</h2>
+            <div class="orders-list" id="myOrdersList">
+                <div class="empty-state">Még nem adtál le rendelést erről az eszközről.</div>
+            </div>
+        </div>
 
-        <div class="orders-section">
+        <div class="orders-section admin-only-section">
             <h2>Mai rendelések</h2>
-            <div class="orders-list" id="ordersList">
+            <div class="orders-tabs">
+                <button class="tab-button active" id="activeTab">Aktív rendelések</button>
+                <button class="tab-button" id="archiveTab">Archív rendelések</button>
+            </div>
+            <div class="orders-list active" id="ordersList">
                 <div class="empty-state">Még nincsenek rendelések a mai napra.</div>
+            </div>
+            <div class="orders-list" id="archiveList">
+                <div class="empty-state">Még nincsenek archivált rendelések.</div>
             </div>
         </div>
     </div>
 
     <div class="admin-indicator" id="adminIndicator">🔐 Admin mód aktív</div>
-
     <div class="admin-panel">
         <button class="admin-toggle" id="adminToggle" title="Admin bejelentkezés">🔐</button>
     </div>
-
     <div class="admin-login" id="adminLogin">
         <div class="login-box">
             <h2>Admin bejelentkezés</h2>
@@ -658,14 +964,85 @@
             </div>
         </div>
     </div>
+    <div class="edit-modal" id="editModal">
+        <div class="edit-box">
+            <h2>Rendelés szerkesztése</h2>
+            <form id="editForm">
+                <div class="form-group">
+                    <label for="editName">Név *</label>
+                    <input type="text" id="editName" required placeholder="Add meg a neved">
+                </div>
+                <div class="form-group">
+                    <label for="editTime">Átvétel időpontja *</label>
+                    <select id="editTime" required>
+                        <option value="">Válassz időpontot...</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="editLactoseFree">
+                        <label for="editLactoseFree">Laktózmentes</label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="editBaseTopping">Alap feltét *</label>
+                    <select id="editBaseTopping" required>
+                        <option value="">Válassz...</option>
+                        <option value="sonka">Sonka</option>
+                        <option value="szalámi">Szalámi</option>
+                        <option value="tonhal">Tonhal</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Plusz feltétek (opcionális)</label>
+                    <div class="toppings-grid">
+                        <select id="editExtraTopping1">
+                            <option value="">Nincs</option>
+                            <option value="gomba">Gomba</option>
+                            <option value="kukorica">Kukorica</option>
+                            <option value="hagyma">Hagyma</option>
+                            <option value="olajbogyó">Olajbogyó</option>
+                            <option value="jalapeno">Jalapeno</option>
+                            <option value="pepperoni">Pepperoni</option>
+                            <option value="mozzarella">Mozzarella</option>
+                            <option value="rukkola">Rukkola</option>
+                        </select>
+                        <select id="editExtraTopping2">
+                            <option value="">Nincs</option>
+                            <option value="gomba">Gomba</option>
+                            <option value="kukorica">Kukorica</option>
+                            <option value="hagyma">Hagyma</option>
+                            <option value="olajbogyó">Olajbogyó</option>
+                            <option value="jalapeno">Jalapeno</option>
+                            <option value="pepperoni">Pepperoni</option>
+                            <option value="mozzarella">Mozzarella</option>
+                            <option value="rukkola">Rukkola</option>
+                        </select>
+                        <select id="editExtraTopping3">
+                            <option value="">Nincs</option>
+                            <option value="gomba">Gomba</option>
+                            <option value="kukorica">Kukorica</option>
+                            <option value="hagyma">Hagyma</option>
+                            <option value="olajbogyó">Olajbogyó</option>
+                            <option value="jalapeno">Jalapeno</option>
+                            <option value="pepperoni">Pepperoni</option>
+                            <option value="mozzarella">Mozzarella</option>
+                            <option value="rukkola">Rukkola</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="edit-buttons">
+                    <button type="button" class="btn-cancel" id="cancelEdit">Mégse</button>
+                    <button type="submit">Mentés</button>
+                </div>
+            </form>
+        </div>
+    </div>
 
-    <!-- Firebase SDK -->
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
         import { getDatabase, ref, set, get, onValue, remove } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
 
-        // Firebase konfiguráció - CSERÉLD KI A SAJÁTODRA!
-        // https://console.firebase.google.com/ -> Create Project -> Realtime Database
         const firebaseConfig = {
             apiKey: "AIzaSyBo-OauYciOsJmll9ACoq2YD6cZpHb8u2w",
             authDomain: "pizzarendeles-b447f.firebaseapp.com",
@@ -673,186 +1050,474 @@
             projectId: "pizzarendeles-b447f",
             storageBucket: "pizzarendeles-b447f.firebasestorage.app",
             messagingSenderId: "953608104638",
-            appId: "1:953608104638:web:1e44f11c902725fdce0cef",
-            measurementId: "G-RH394K7NFX"
-          };
+            appId: "1:953608104638:web:1e44f11c902725fdce0cef"
+        };
 
-        // Firebase inicializálás
         const app = initializeApp(firebaseConfig);
         const database = getDatabase(app);
 
-        // Admin state
         let isAdminMode = false;
         const ADMIN_PASSWORD = 'admin123';
 
-        // Generate time slots
-        function generateTimeSlots() {
+        const MAX_SLOTS = 4;
+
+        // slotCounts: { "17:30": 2, "17:40": 4, ... }
+        function generateTimeSlots(slotCounts = {}) {
             const select = document.getElementById('time');
+            const currentValue = select.value;
+            select.innerHTML = '<option value="">Válassz időpontot...</option>';
             const startTime = 17 * 60 + 30;
             const endTime = 20 * 60 + 30;
-            
             for (let time = startTime; time <= endTime; time += 10) {
                 const hours = Math.floor(time / 60);
                 const minutes = time % 60;
                 const timeString = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+                const count = slotCounts[timeString] || 0;
+                const free = MAX_SLOTS - count;
                 const option = document.createElement('option');
                 option.value = timeString;
-                option.textContent = timeString;
+                if (free <= 0) {
+                    option.textContent = `${timeString} – FOGLALT`;
+                    option.disabled = true;
+                    option.style.color = '#aaa';
+                } else {
+                    option.textContent = `${timeString}  (${free} hely szabad)`;
+                    option.disabled = false;
+                    option.style.color = '';
+                }
+                select.appendChild(option);
+            }
+            if (currentValue && (slotCounts[currentValue] || 0) < MAX_SLOTS) {
+                select.value = currentValue;
+            }
+        }
+
+        async function generateEditTimeSlots(currentTime, currentSlotKey) {
+            const select = document.getElementById('editTime');
+            select.innerHTML = '<option value="">Válassz időpontot...</option>';
+            const startTime = 17 * 60 + 30;
+            const endTime = 20 * 60 + 30;
+            const todayKey = getTodayKey();
+            const ordersRef = ref(database, `orders/${todayKey}`);
+            const snapshot = await get(ordersRef);
+            const allData = snapshot.exists() ? snapshot.val() : {};
+
+            // Build slotCounts, but exclude the slot being edited from its current time
+            const slotCounts = {};
+            for (const [t, slots] of Object.entries(allData)) {
+                if (!slots || typeof slots !== 'object') continue;
+                for (const [sk, order] of Object.entries(slots)) {
+                    if (!order || order.archived) continue;
+                    if (t === currentTime && sk === currentSlotKey) continue; // exclude self
+                    slotCounts[t] = (slotCounts[t] || 0) + 1;
+                }
+            }
+            for (let time = startTime; time <= endTime; time += 10) {
+                const hours = Math.floor(time / 60);
+                const minutes = time % 60;
+                const timeString = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+                const count = slotCounts[timeString] || 0;
+                const free = MAX_SLOTS - count;
+                if (free <= 0) continue; // skip full slots
+                const option = document.createElement('option');
+                option.value = timeString;
+                option.textContent = timeString === currentTime
+                    ? `${timeString}  (jelenlegi)`
+                    : `${timeString}  (${free} hely szabad)`;
                 select.appendChild(option);
             }
         }
 
-        // Toast notification
+        function filterMozzarella(isLactoseFree, prefix = '') {
+            // When prefix is 'edit', IDs are 'editExtraTopping1' (capital E), not 'editextraTopping1'
+            const suffix = prefix === 'edit' ? 'ExtraTopping' : 'extraTopping';
+            const selects = [
+                document.getElementById(prefix + suffix + '1'),
+                document.getElementById(prefix + suffix + '2'),
+                document.getElementById(prefix + suffix + '3')
+            ].filter(Boolean); // guard: skip any null elements
+            selects.forEach(select => {
+                const mozzarellaOption = Array.from(select.options).find(opt => opt.value === 'mozzarella');
+                if (mozzarellaOption) {
+                    if (isLactoseFree) {
+                        if (select.value === 'mozzarella') select.value = '';
+                        mozzarellaOption.disabled = true;
+                        mozzarellaOption.style.display = 'none';
+                    } else {
+                        mozzarellaOption.disabled = false;
+                        mozzarellaOption.style.display = '';
+                    }
+                }
+            });
+        }
+
         function showToast(message) {
             const existingToast = document.querySelector('.toast');
-            if (existingToast) {
-                existingToast.remove();
-            }
-
+            if (existingToast) existingToast.remove();
             const toast = document.createElement('div');
             toast.className = 'toast';
             toast.textContent = message;
             document.body.appendChild(toast);
-
             setTimeout(() => {
                 toast.classList.add('hide');
                 setTimeout(() => toast.remove(), 300);
             }, 3000);
         }
 
-        // Get today's date key
+        // ── Cookie helpers ──────────────────────────────────────────
+        function getDeviceId() {
+            // Unique ID per browser/device, stored in a cookie that never expires
+            let id = getCookie('pizzeria_device_id');
+            if (!id) {
+                id = 'dev_' + Math.random().toString(36).slice(2) + Date.now().toString(36);
+                setCookie('pizzeria_device_id', id, 365);
+            }
+            return id;
+        }
+
+        function setCookie(name, value, days) {
+            const expires = new Date(Date.now() + days * 864e5).toUTCString();
+            document.cookie = `${name}=${encodeURIComponent(value)}; expires=${expires}; path=/; SameSite=Lax`;
+        }
+
+        function getCookie(name) {
+            return document.cookie.split('; ').reduce((acc, part) => {
+                const [k, v] = part.split('=');
+                return k === name ? decodeURIComponent(v) : acc;
+            }, null);
+        }
+
+        // Save this device's order as {time, slotKey} in cookie (today only)
+        function saveMyOrderToCookie(time, slotKey) {
+            const todayKey = getTodayKey();
+            const cookieName = `my_orders_${todayKey}`;
+            const existing = getCookie(cookieName);
+            const entries = existing ? JSON.parse(existing) : [];
+            const already = entries.some(e => e.time === time && e.slotKey === slotKey);
+            if (!already) {
+                entries.push({ time, slotKey });
+                setCookie(cookieName, JSON.stringify(entries), 1);
+            }
+        }
+
+        function removeMyOrderFromCookie(time, slotKey) {
+            const todayKey = getTodayKey();
+            const cookieName = `my_orders_${todayKey}`;
+            const existing = getCookie(cookieName);
+            if (!existing) return;
+            const entries = JSON.parse(existing).filter(e => !(e.time === time && e.slotKey === slotKey));
+            setCookie(cookieName, JSON.stringify(entries), 1);
+        }
+
+        function updateMyOrderCookie(oldTime, newTime, slotKey) {
+            removeMyOrderFromCookie(oldTime, slotKey);
+            saveMyOrderToCookie(newTime, slotKey);
+        }
+
+        function getMyOrderEntries() {
+            const todayKey = getTodayKey();
+            const existing = getCookie(`my_orders_${todayKey}`);
+            if (!existing) return [];
+            const parsed = JSON.parse(existing);
+            // backwards-compat: old cookie stored plain strings (times only)
+            return parsed.map(e => typeof e === 'string' ? { time: e, slotKey: null } : e);
+        }
+
+        // Display only this device's orders
+        function displayMyOrders(allOrders) {
+            const myEntries = getMyOrderEntries();
+            const myList = document.getElementById('myOrdersList');
+            const myOrders = allOrders.filter(o =>
+                !o.archived &&
+                myEntries.some(e => e.time === o.time && (e.slotKey === o.slotKey || e.slotKey === null))
+            );
+
+            if (myOrders.length === 0) {
+                myList.innerHTML = '<div class="empty-state">Még nem adtál le rendelést erről az eszközről.</div>';
+                return;
+            }
+
+            myList.innerHTML = myOrders.map(order => {
+                const extras = [order.extraTopping1, order.extraTopping2, order.extraTopping3]
+                    .filter(t => t && t !== '').join(', ');
+                const status = getStatus(order);
+                const statusClass = status === 'completed' ? ' completed' : status === 'preparing' ? ' preparing' : '';
+                const statusMsg = {
+                    pending: '',
+                    preparing: '<div class="order-status" style="color:#856404">🍳 Készülőben – kb. 10–15 perc!</div>',
+                    completed: '<div class="order-status" style="color:#155724">✅ Kész – hamarosan átveheted!</div>'
+                }[status];
+                return `
+                    <div class="my-order-item${statusClass}">
+                        <div class="my-order-badge">🍕 Saját rendelés</div>
+                        <div class="order-time">${order.time}</div>
+                        <div class="order-details">
+                            <strong>Név:</strong> ${order.name}<br>
+                            <strong>Alap feltét:</strong> ${order.baseTopping}
+                            ${extras ? '<br><strong>Plusz feltétek:</strong> ' + extras : ''}
+                            ${order.lactoseFree ? '<br><strong>Laktózmentes</strong>' : ''}
+                        </div>
+                        ${statusMsg}
+                    </div>`;
+            }).join('');
+        }
+        // ────────────────────────────────────────────────────────────
+
         function getTodayKey() {
             const today = new Date();
             return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
         }
 
-        // Load orders from Firebase
         function loadOrders() {
             const todayKey = getTodayKey();
             const ordersRef = ref(database, `orders/${todayKey}`);
-            
             onValue(ordersRef, (snapshot) => {
                 const data = snapshot.val();
                 if (!data) {
-                    document.getElementById('ordersList').innerHTML = 
-                        '<div class="empty-state">Még nincsenek rendelések a mai napra.</div>';
+                    generateTimeSlots([]); // no occupied slots
+                    document.getElementById('ordersList').innerHTML = '<div class="empty-state">Még nincsenek rendelések a mai napra.</div>';
+                    displayArchiveOrders([]);
+                    displayMyOrders([]);
                     return;
                 }
+                // New structure: orders/date/time/slotKey = orderObject
+                // Flatten all slots into a flat array with .time and .slotKey
+                const allOrders = [];
+                for (const [time, slots] of Object.entries(data)) {
+                    if (slots && typeof slots === 'object') {
+                        for (const [slotKey, order] of Object.entries(slots)) {
+                            if (order && typeof order === 'object') {
+                                allOrders.push({ time, slotKey, ...order });
+                            }
+                        }
+                    }
+                }
+                const active = allOrders.filter(o => !o.archived);
+                const archived = allOrders.filter(o => o.archived);
+                active.sort((a, b) => a.time.localeCompare(b.time) || a.slotKey.localeCompare(b.slotKey));
+                archived.sort((a, b) => a.time.localeCompare(b.time) || a.slotKey.localeCompare(b.slotKey));
 
-                const orders = Object.keys(data).map(time => ({
-                    time,
-                    ...data[time]
-                }));
+                // Build slotCounts: how many active orders per time slot
+                const slotCounts = {};
+                for (const o of active) {
+                    slotCounts[o.time] = (slotCounts[o.time] || 0) + 1;
+                }
+                generateTimeSlots(slotCounts);
 
-                orders.sort((a, b) => a.time.localeCompare(b.time));
-                displayOrders(orders);
+                displayOrders(active);
+                displayArchiveOrders(archived);
+                displayMyOrders(allOrders);
             });
         }
 
-        // Display orders
+        function loadArchiveOrders() {
+            // Archive is now handled inside loadOrders() to avoid /archive permission errors
+        }
+
+        function displayArchiveOrders(orders) {
+            const archiveList = document.getElementById('archiveList');
+            if (orders.length === 0) {
+                archiveList.innerHTML = '<div class="empty-state">Még nincsenek archivált rendelések.</div>';
+                return;
+            }
+            archiveList.innerHTML = orders.map(order => {
+                const extras = [order.extraTopping1, order.extraTopping2, order.extraTopping3]
+                    .filter(t => t && t !== '').join(', ');
+                const archivedDate = order.archivedAt ? new Date(order.archivedAt).toLocaleString('hu-HU') : '';
+                return `
+                    <div class="archive-item">
+                        <div class="order-time">${order.time}</div>
+                        <div class="order-details">
+                            <strong>Név:</strong> ${order.name}<br>
+                            <strong>Alap feltét:</strong> ${order.baseTopping}
+                            ${extras ? '<br><strong>Plusz feltétek:</strong> ' + extras : ''}
+                            ${order.lactoseFree ? '<br><strong>Laktózmentes</strong>' : ''}
+                            ${archivedDate ? '<div class="archive-date">Archiválva: ' + archivedDate + '</div>' : ''}
+                        </div>
+                    </div>`;
+            }).join('');
+        }
+
+        // status helpers
+        function statusLabel(status) {
+            if (status === 'preparing') return '<span class="status-badge preparing">🍳 Készülőben (10–15p)</span>';
+            if (status === 'completed') return '<span class="status-badge completed">✅ Kész</span>';
+            return '<span class="status-badge pending">⏳ Függőben</span>';
+        }
+        function nextStatusBtn(status, time, slotKey) {
+            if (status === 'pending') return `<button class="btn-status to-preparing" data-time="${time}" data-slot="${slotKey}"><span>▶ Készülőben</span></button>`;
+            if (status === 'preparing') return `<button class="btn-status to-completed" data-time="${time}" data-slot="${slotKey}"><span>✔ Kész</span></button>`;
+            if (status === 'completed') return `<button class="btn-status to-pending"   data-time="${time}" data-slot="${slotKey}"><span>↩ Visszaállít</span></button>`;
+        }
+        function getStatus(order) {
+            // backwards-compat: old orders only had order.completed boolean
+            if (order.status) return order.status;
+            if (order.completed) return 'completed';
+            return 'pending';
+        }
+
         function displayOrders(orders) {
             const ordersList = document.getElementById('ordersList');
-            
             if (orders.length === 0) {
                 ordersList.innerHTML = '<div class="empty-state">Még nincsenek rendelések a mai napra.</div>';
                 return;
             }
-
             ordersList.innerHTML = orders.map(order => {
                 const extras = [order.extraTopping1, order.extraTopping2, order.extraTopping3]
-                    .filter(t => t && t !== '')
-                    .join(', ');
-                
-                const completedClass = order.completed ? ' completed' : '';
-                const completedStatus = order.completed ? '<div class="order-status">✓ Kész</div>' : '';
-                
+                    .filter(t => t && t !== '').join(', ');
+                const status = getStatus(order);
                 return `
-                    <div class="order-item${completedClass}">
-                        <input type="checkbox" 
-                               class="order-checkbox" 
-                               ${order.completed ? 'checked' : ''} 
-                               data-time="${order.time}">
+                    <div class="order-item ${status}" data-time="${order.time}" data-slot="${order.slotKey}">
                         <div class="order-content">
-                            <div class="order-time">${order.time}</div>
+                            <div class="order-time">${order.time} <small style="font-size:0.7em;color:#aaa">#${order.slotKey}</small></div>
                             <div class="order-details">
                                 <strong>Név:</strong> ${order.name}<br>
-                                <strong>Alap feltét:</strong> ${order.baseTopping}${extras ? '<br><strong>Plusz feltétek:</strong> ' + extras : ''}
+                                <strong>Alap feltét:</strong> ${order.baseTopping}
+                                ${extras ? '<br><strong>Plusz feltétek:</strong> ' + extras : ''}
                                 ${order.lactoseFree ? '<br><strong>Laktózmentes</strong>' : ''}
                             </div>
-                            ${completedStatus}
+                            ${statusLabel(status)}
+                            <div class="order-actions">
+                                ${nextStatusBtn(status, order.time, order.slotKey)}
+                                <button class="btn-edit"   data-time="${order.time}" data-slot="${order.slotKey}"><span>✏️ Szerkesztés</span></button>
+                                <button class="btn-delete" data-time="${order.time}" data-slot="${order.slotKey}"><span>🗑️ Törlés</span></button>
+                            </div>
                         </div>
-                    </div>
-                `;
+                    </div>`;
             }).join('');
-
-            // Add event listeners to checkboxes
-            document.querySelectorAll('.order-checkbox').forEach(checkbox => {
-                checkbox.addEventListener('change', (e) => {
-                    toggleOrderCompletion(e.target.dataset.time, e.target.checked);
-                });
-            });
         }
 
-        // Toggle order completion
-        async function toggleOrderCompletion(time, completed) {
+        // Single delegated listener — handles status, edit, delete buttons
+        document.addEventListener('click', async (e) => {
+            const statusBtn = e.target.closest('.btn-status');
+            if (statusBtn) {
+                const time = statusBtn.dataset.time;
+                const slotKey = statusBtn.dataset.slot;
+                if (!time || !slotKey) return;
+                if (statusBtn.classList.contains('to-preparing')) await cycleOrderStatus(time, slotKey, 'preparing');
+                else if (statusBtn.classList.contains('to-completed')) await cycleOrderStatus(time, slotKey, 'completed');
+                else if (statusBtn.classList.contains('to-pending')) await cycleOrderStatus(time, slotKey, 'pending');
+                return;
+            }
+
+            const deleteBtn = e.target.closest('.btn-delete');
+            if (deleteBtn) {
+                const time = deleteBtn.dataset.time;
+                const slotKey = deleteBtn.dataset.slot;
+                if (time && slotKey && confirm(`Biztosan törölni szeretnéd a ${time}-es rendelést?`)) {
+                    await deleteOrder(time, slotKey);
+                }
+                return;
+            }
+
+            const editBtn = e.target.closest('.btn-edit');
+            if (editBtn) {
+                const time = editBtn.dataset.time;
+                const slotKey = editBtn.dataset.slot;
+                if (time && slotKey) await openEditModal(time, slotKey);
+                return;
+            }
+        });
+
+        async function cycleOrderStatus(time, slotKey, toStatus) {
             try {
                 const todayKey = getTodayKey();
-                const orderRef = ref(database, `orders/${todayKey}/${time}`);
+                const orderRef = ref(database, `orders/${todayKey}/${time}/${slotKey}`);
                 const snapshot = await get(orderRef);
-                
                 if (snapshot.exists()) {
                     const order = snapshot.val();
-                    order.completed = completed;
+                    order.status = toStatus;
+                    order.completed = (toStatus === 'completed');
                     await set(orderRef, order);
-                    showToast(completed ? '✅ Rendelés elkészültként jelölve' : '🔄 Rendelés visszaállítva');
+                    const msgs = {
+                        preparing: '🍳 Rendelés: Készülőben',
+                        completed: '✅ Rendelés: Kész',
+                        pending: '↩ Rendelés visszaállítva'
+                    };
+                    showToast(msgs[toStatus]);
                 }
             } catch (error) {
-                console.error('Error toggling completion:', error);
+                console.error('Error updating status:', error);
                 showToast('❌ Hiba történt');
             }
         }
 
-        // Load order for selected time
-        async function loadOrderForTime(time) {
-            if (!time) return;
-
+        async function deleteOrder(time, slotKey) {
             try {
                 const todayKey = getTodayKey();
-                const orderRef = ref(database, `orders/${todayKey}/${time}`);
+                const orderRef = ref(database, `orders/${todayKey}/${time}/${slotKey}`);
                 const snapshot = await get(orderRef);
-                
                 if (snapshot.exists()) {
                     const order = snapshot.val();
-                    
-                    document.getElementById('name').value = order.name;
-                    document.getElementById('lactoseFree').checked = order.lactoseFree;
-                    document.getElementById('baseTopping').value = order.baseTopping;
-                    document.getElementById('extraTopping1').value = order.extraTopping1 || '';
-                    document.getElementById('extraTopping2').value = order.extraTopping2 || '';
-                    document.getElementById('extraTopping3').value = order.extraTopping3 || '';
-                    
-                    showToast('⚠️ Erre az időpontra már van rendelés - szerkesztheted');
-                } else {
-                    // Clear form if no order exists
-                    document.getElementById('name').value = '';
-                    document.getElementById('lactoseFree').checked = false;
-                    document.getElementById('baseTopping').value = '';
-                    document.getElementById('extraTopping1').value = '';
-                    document.getElementById('extraTopping2').value = '';
-                    document.getElementById('extraTopping3').value = '';
+                    await set(orderRef, { ...order, archived: true, archivedAt: Date.now() });
+                    removeMyOrderFromCookie(time, slotKey);
+                    showToast('📦 Rendelés archiválva');
                 }
             } catch (error) {
-                console.error('Error loading order:', error);
+                console.error('Error archiving order:', error);
+                showToast('❌ Hiba történt az archiválás során');
             }
         }
 
-        // Save order to Firebase
+        let editingOrderOriginalTime = null;
+        let editingOrderSlotKey = null;
+        async function openEditModal(time, slotKey) {
+            try {
+                const todayKey = getTodayKey();
+                const orderRef = ref(database, `orders/${todayKey}/${time}/${slotKey}`);
+                const snapshot = await get(orderRef);
+                if (snapshot.exists()) {
+                    const order = snapshot.val();
+                    editingOrderOriginalTime = time;
+                    editingOrderSlotKey = slotKey;
+                    document.getElementById('editName').value = order.name;
+                    document.getElementById('editLactoseFree').checked = order.lactoseFree;
+                    document.getElementById('editBaseTopping').value = order.baseTopping;
+                    document.getElementById('editExtraTopping1').value = order.extraTopping1 || '';
+                    document.getElementById('editExtraTopping2').value = order.extraTopping2 || '';
+                    document.getElementById('editExtraTopping3').value = order.extraTopping3 || '';
+                    await generateEditTimeSlots(time, slotKey);
+                    document.getElementById('editTime').value = time;
+                    filterMozzarella(order.lactoseFree, 'edit');
+                    document.getElementById('editModal').classList.add('show');
+                }
+            } catch (error) {
+                console.error('Error opening edit modal:', error);
+                showToast('❌ Hiba történt');
+            }
+        }
+
+        function closeEditModal() {
+            document.getElementById('editModal').classList.remove('show');
+            editingOrderOriginalTime = null;
+            editingOrderSlotKey = null;
+        }
+
         async function saveOrder(orderData) {
             try {
                 const todayKey = getTodayKey();
-                const orderRef = ref(database, `orders/${todayKey}/${orderData.time}`);
-                await set(orderRef, orderData);
-                return true;
+                const timeRef = ref(database, `orders/${todayKey}/${orderData.time}`);
+                const snapshot = await get(timeRef);
+                const existing = snapshot.exists() ? snapshot.val() : {};
+                // Find active (non-archived) slot count
+                const activeSlots = Object.values(existing).filter(s => s && !s.archived);
+                if (activeSlots.length >= MAX_SLOTS) {
+                    showToast('❌ Ez az időpont már tele van (max 4 rendelés)');
+                    return false;
+                }
+                // Find next free slot key
+                let slotKey = null;
+                for (let i = 1; i <= MAX_SLOTS; i++) {
+                    const key = `slot_${i}`;
+                    if (!existing[key] || existing[key].archived) { slotKey = key; break; }
+                }
+                if (!slotKey) {
+                    showToast('❌ Nincs szabad hely erre az időpontra');
+                    return false;
+                }
+                const slotRef = ref(database, `orders/${todayKey}/${orderData.time}/${slotKey}`);
+                await set(slotRef, { ...orderData, slotKey });
+                return slotKey; // return slotKey so cookie can store time+slot
             } catch (error) {
                 console.error('Error saving order:', error);
                 showToast('❌ Hiba történt a mentés során: ' + error.message);
@@ -860,7 +1525,19 @@
             }
         }
 
-        // Admin login
+        async function loadOrderForTime(time) {
+            if (!time) return;
+            try {
+                const todayKey = getTodayKey();
+                const orderRef = ref(database, `orders/${todayKey}/${time}`);
+                const snapshot = await get(orderRef);
+                // With multi-slot system, we no longer pre-fill from existing orders.
+                // Each person picks their own slot — no prefill needed.
+            } catch (error) {
+                console.error('Error loading order:', error);
+            }
+        }
+
         function showAdminLogin() {
             document.getElementById('adminLogin').classList.add('show');
             document.getElementById('adminPassword').value = '';
@@ -888,15 +1565,10 @@
 
         // Event listeners
         document.getElementById('adminToggle').addEventListener('click', () => {
-            if (isAdminMode) {
-                toggleAdminMode(false);
-            } else {
-                showAdminLogin();
-            }
+            if (isAdminMode) toggleAdminMode(false);
+            else showAdminLogin();
         });
-
         document.getElementById('cancelLogin').addEventListener('click', hideAdminLogin);
-
         document.getElementById('loginButton').addEventListener('click', () => {
             const password = document.getElementById('adminPassword').value;
             if (password === ADMIN_PASSWORD) {
@@ -908,24 +1580,85 @@
                 document.getElementById('adminPassword').focus();
             }
         });
-
         document.getElementById('adminPassword').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                document.getElementById('loginButton').click();
-            }
+            if (e.key === 'Enter') document.getElementById('loginButton').click();
         });
-
-        // Close admin login on background click
         document.getElementById('adminLogin').addEventListener('click', (e) => {
-            if (e.target.id === 'adminLogin') {
-                hideAdminLogin();
+            if (e.target.id === 'adminLogin') hideAdminLogin();
+        });
+        document.getElementById('cancelEdit').addEventListener('click', closeEditModal);
+        document.getElementById('editModal').addEventListener('click', (e) => {
+            if (e.target.id === 'editModal') closeEditModal();
+        });
+        document.getElementById('lactoseFree').addEventListener('change', (e) => {
+            filterMozzarella(e.target.checked);
+        });
+        document.getElementById('editLactoseFree').addEventListener('change', (e) => {
+            filterMozzarella(e.target.checked, 'edit');
+        });
+        document.getElementById('editForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const newTime = document.getElementById('editTime').value;
+            try {
+                const todayKey = getTodayKey();
+                const oldRef = ref(database, `orders/${todayKey}/${editingOrderOriginalTime}/${editingOrderSlotKey}`);
+                const oldSnapshot = await get(oldRef);
+                const wasStatus = oldSnapshot.exists() ? (oldSnapshot.val().status || 'pending') : 'pending';
+                const orderData = {
+                    name: document.getElementById('editName').value,
+                    time: newTime,
+                    slotKey: editingOrderSlotKey,
+                    lactoseFree: document.getElementById('editLactoseFree').checked,
+                    baseTopping: document.getElementById('editBaseTopping').value,
+                    extraTopping1: document.getElementById('editExtraTopping1').value,
+                    extraTopping2: document.getElementById('editExtraTopping2').value,
+                    extraTopping3: document.getElementById('editExtraTopping3').value,
+                    status: wasStatus,
+                    completed: (wasStatus === 'completed'),
+                    timestamp: Date.now()
+                };
+                if (editingOrderOriginalTime !== newTime) {
+                    // Moving to a different time slot — archive old, create new
+                    await set(oldRef, { ...oldSnapshot.val(), archived: true, archivedAt: Date.now() });
+                    // Find free slot in new time
+                    const newTimeRef = ref(database, `orders/${todayKey}/${newTime}`);
+                    const newSnap = await get(newTimeRef);
+                    const existing = newSnap.exists() ? newSnap.val() : {};
+                    let newSlotKey = null;
+                    for (let i = 1; i <= MAX_SLOTS; i++) {
+                        const k = `slot_${i}`;
+                        if (!existing[k] || existing[k].archived) { newSlotKey = k; break; }
+                    }
+                    if (!newSlotKey) { showToast('❌ Az új időpontban nincs szabad hely'); return; }
+                    orderData.slotKey = newSlotKey;
+                    const newSlotRef = ref(database, `orders/${todayKey}/${newTime}/${newSlotKey}`);
+                    await set(newSlotRef, orderData);
+                    updateMyOrderCookie(editingOrderOriginalTime, newTime);
+                } else {
+                    // Same time, update in place
+                    await set(oldRef, orderData);
+                }
+                showToast('✅ Rendelés sikeresen módosítva!');
+                closeEditModal();
+            } catch (error) {
+                console.error('Error updating order:', error);
+                showToast('❌ Hiba történt a módosítás során: ' + error.message);
             }
         });
-
-        // Form submission
+        document.getElementById('activeTab').addEventListener('click', () => {
+            document.getElementById('activeTab').classList.add('active');
+            document.getElementById('archiveTab').classList.remove('active');
+            document.getElementById('ordersList').classList.add('active');
+            document.getElementById('archiveList').classList.remove('active');
+        });
+        document.getElementById('archiveTab').addEventListener('click', () => {
+            document.getElementById('archiveTab').classList.add('active');
+            document.getElementById('activeTab').classList.remove('active');
+            document.getElementById('archiveList').classList.add('active');
+            document.getElementById('ordersList').classList.remove('active');
+        });
         document.getElementById('pizzaForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-
             const orderData = {
                 name: document.getElementById('name').value,
                 time: document.getElementById('time').value,
@@ -937,22 +1670,22 @@
                 completed: false,
                 timestamp: Date.now()
             };
-
-            const saved = await saveOrder(orderData);
-            if (saved) {
+            const slotKey = await saveOrder(orderData);
+            if (slotKey) {
+                saveMyOrderToCookie(orderData.time, slotKey);
                 showToast('✅ Rendelés sikeresen leadva!');
                 document.getElementById('pizzaForm').reset();
             }
         });
-
-        // Time change handler
         document.getElementById('time').addEventListener('change', (e) => {
             loadOrderForTime(e.target.value);
         });
 
-        // Initialize
-        generateTimeSlots();
+        // Initialize — generateTimeSlots() is now called inside loadOrders with real occupied data
+        generateTimeSlots(); // initial render with no occupied times until Firebase responds
         loadOrders();
+        loadArchiveOrders();
     </script>
 </body>
+
 </html>
