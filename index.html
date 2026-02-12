@@ -1255,6 +1255,15 @@
                     </select>
                 </div>
                 <div class="form-group">
+                    <label for="quantity">Darabszám *</label>
+                    <select id="quantity" required>
+                        <option value="1">1 pizza</option>
+                    </select>
+                    <small style="color: #666; font-size: 0.9rem; display: block; margin-top: 0.3rem;">
+                        💡 Hány ugyanilyen pizzát szeretnél rendelni? (Maximum annyi, ahány hely szabad az időpontban)
+                    </small>
+                </div>
+                <div class="form-group">
                     <div class="checkbox-group">
                         <input type="checkbox" id="lactoseFree">
                         <label for="lactoseFree">Laktózmentes</label>
@@ -1331,7 +1340,9 @@
             </div>
             <div class="orders-list" id="statisticsList">
                 <div class="stats-grid" id="statsGrid"></div>
-                <h3 style="font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; color: var(--primary); margin-bottom: 1rem;">Összetevők szükséglet</h3>
+                <h3
+                    style="font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; color: var(--primary); margin-bottom: 1rem;">
+                    Összetevők szükséglet</h3>
                 <div class="ingredients-list" id="ingredientsList"></div>
             </div>
             <div class="orders-list" id="archiveList">
@@ -1344,7 +1355,9 @@
                 </div>
             </div>
             <div class="orders-list" id="settingsList">
-                <h3 style="font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; color: var(--primary); margin-bottom: 1.5rem;">⚙️ Rendszer beállítások</h3>
+                <h3
+                    style="font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; color: var(--primary); margin-bottom: 1.5rem;">
+                    ⚙️ Rendszer beállítások</h3>
                 <div class="settings-group">
                     <div class="checkbox-group">
                         <input type="checkbox" id="settingsAutoDelete">
@@ -1354,16 +1367,55 @@
                 <div class="settings-group">
                     <label for="settingsTimeInterval">⏱️ Időslot intervallum (perc)</label>
                     <input type="number" id="settingsTimeInterval" min="5" max="30" step="5" placeholder="10">
-                    <small style="color: #666; font-size: 0.85rem;">Hány percenként lehet rendelni (pl. 10 perc = 17:30, 17:40, 17:50...)</small>
+                    <small style="color: #666; font-size: 0.85rem;">Hány percenként lehet rendelni (pl. 10 perc = 17:30,
+                        17:40, 17:50...)</small>
                 </div>
                 <div class="settings-group">
                     <label for="settingsMaxSlots">🍕 Max pizzák egy időslotban</label>
                     <input type="number" id="settingsMaxSlots" min="1" max="10" step="1" placeholder="4">
                     <small style="color: #666; font-size: 0.85rem;">Hány pizza férhet egy időpontba egyszerre</small>
                 </div>
+                <div class="settings-group">
+                    <label>🕐 Nyitvatartás</label>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 0.5rem;">
+                        <div>
+                            <label for="settingsOpenTime" style="font-size: 0.9rem; margin-bottom: 0.3rem;">Nyitás
+                                (óra)</label>
+                            <input type="number" id="settingsOpenTime" min="0" max="23" step="1" placeholder="17">
+                        </div>
+                        <div>
+                            <label for="settingsOpenMinute" style="font-size: 0.9rem; margin-bottom: 0.3rem;">Nyitás
+                                (perc)</label>
+                            <input type="number" id="settingsOpenMinute" min="0" max="59" step="1" placeholder="30">
+                        </div>
+                        <div>
+                            <label for="settingsCloseTime" style="font-size: 0.9rem; margin-bottom: 0.3rem;">Zárás
+                                (óra)</label>
+                            <input type="number" id="settingsCloseTime" min="0" max="23" step="1" placeholder="20">
+                        </div>
+                        <div>
+                            <label for="settingsCloseMinute" style="font-size: 0.9rem; margin-bottom: 0.3rem;">Zárás
+                                (perc)</label>
+                            <input type="number" id="settingsCloseMinute" min="0" max="59" step="1" placeholder="30">
+                        </div>
+                    </div>
+                    <small style="color: #666; font-size: 0.85rem; display: block; margin-top: 0.5rem;">
+                        Mikor van nyitva a pizzéria (az időslotok ezek között lesznek generálva)
+                    </small>
+                </div>
+
+                <div
+                    style="margin-top: 1.5rem; padding: 1rem; background: #FFF9F0; border-radius: 8px; text-align: center;">
+                    <a href="reset.html"
+                        style="color: var(--primary); text-decoration: none; font-weight: 600; font-size: 0.95rem;">
+                        🔄 Cookie-k törlése (teszt célra)
+                    </a>
+                </div>
                 <button id="saveSettingsBtn" style="margin-top: 1rem;">💾 Beállítások mentése</button>
-                <div style="margin-top: 1rem; padding: 1rem; background: #FFF9F0; border-radius: 8px; border-left: 4px solid var(--accent);">
-                    <strong>⚠️ Figyelem:</strong> Az időslot intervallum módosítása után frissítsd az oldalt, hogy érvénybe lépjen!
+                <div
+                    style="margin-top: 1rem; padding: 1rem; background: #FFF9F0; border-radius: 8px; border-left: 4px solid var(--accent);">
+                    <strong>⚠️ Figyelem:</strong> Az időslot intervallum módosítása után frissítsd az oldalt, hogy
+                    érvénybe lépjen!
                 </div>
             </div>
         </div>
@@ -1482,10 +1534,16 @@
         // Settings with localStorage persistence
         let MAX_SLOTS = parseInt(localStorage.getItem('pizza_max_slots')) || 4;
         let TIME_SLOT_INTERVAL = parseInt(localStorage.getItem('pizza_time_interval')) || 10; // minutes
-        
+
+        let OPEN_HOUR = parseInt(localStorage.getItem('pizza_open_hour')) || 17;
+        let OPEN_MINUTE = parseInt(localStorage.getItem('pizza_open_minute')) || 30;
+        let CLOSE_HOUR = parseInt(localStorage.getItem('pizza_close_hour')) || 20;
+        let CLOSE_MINUTE = parseInt(localStorage.getItem('pizza_close_minute')) || 30;
+
+
         // Track order statuses for change detection
         let previousOrderStatuses = {};
-        
+
         // Auto-delete completed orders setting
         let autoDeleteCompleted = localStorage.getItem('pizza_auto_delete') === 'true' || false;
 
@@ -1494,8 +1552,8 @@
             const select = document.getElementById('time');
             const currentValue = select.value;
             select.innerHTML = '<option value="">Válassz időpontot...</option>';
-            const startTime = 17 * 60 + 30;
-            const endTime = 20 * 60 + 30;
+            const startTime = OPEN_HOUR * 60 + OPEN_MINUTE;
+            const endTime = CLOSE_HOUR * 60 + CLOSE_MINUTE;
             for (let time = startTime; time <= endTime; time += TIME_SLOT_INTERVAL) {
                 const hours = Math.floor(time / 60);
                 const minutes = time % 60;
@@ -1517,6 +1575,33 @@
             }
             if (currentValue && (slotCounts[currentValue] || 0) < MAX_SLOTS) {
                 select.value = currentValue;
+            }
+        }
+
+        function updateQuantityOptions() {
+            const timeSelect = document.getElementById('time');
+            const quantitySelect = document.getElementById('quantity');
+            const selectedTime = timeSelect.value;
+
+            if (!selectedTime) {
+                quantitySelect.innerHTML = '<option value="1">1 pizza</option>';
+                return;
+            }
+
+            // Nézd meg hány szabad hely van
+            const option = Array.from(timeSelect.options).find(opt => opt.value === selectedTime);
+            if (option && !option.disabled) {
+                const text = option.textContent;
+                const match = text.match(/\((\d+) hely szabad\)/);
+                const available = match ? parseInt(match[1]) : 1;
+
+                quantitySelect.innerHTML = '';
+                for (let i = 1; i <= Math.min(available, 10); i++) {
+                    const opt = document.createElement('option');
+                    opt.value = i;
+                    opt.textContent = i === 1 ? '1 pizza' : `${i} pizza`;
+                    quantitySelect.appendChild(opt);
+                }
             }
         }
 
@@ -1546,10 +1631,10 @@
                 const timeString = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
                 const count = slotCounts[timeString] || 0;
                 const free = MAX_SLOTS - count;
-                
+
                 const option = document.createElement('option');
                 option.value = timeString;
-                
+
                 if (timeString === currentTime) {
                     // Always show current time as available
                     option.textContent = `${timeString}  (jelenlegi)`;
@@ -1559,7 +1644,7 @@
                 } else {
                     option.textContent = `${timeString}  (${free} hely szabad)`;
                 }
-                
+
                 select.appendChild(option);
             }
         }
@@ -1595,9 +1680,9 @@
                 document.getElementById(prefix + suffix + '2'),
                 document.getElementById(prefix + suffix + '3')
             ].filter(Boolean);
-            
+
             const meatToppings = ['pepperoni']; // Only pepperoni is meat
-            
+
             selects.forEach(select => {
                 meatToppings.forEach(meat => {
                     const meatOption = Array.from(select.options).find(opt => opt.value === meat);
@@ -1606,8 +1691,8 @@
                             if (select.value === meat) select.value = '';
                             meatOption.disabled = true;
                             meatOption.style.color = '#ccc';
-                            meatOption.textContent = meatOption.textContent.includes('🚫') 
-                                ? meatOption.textContent 
+                            meatOption.textContent = meatOption.textContent.includes('🚫')
+                                ? meatOption.textContent
                                 : '🚫 ' + meatOption.textContent;
                         } else {
                             meatOption.disabled = false;
@@ -1710,7 +1795,7 @@
                 const orderKey = `${order.time}_${order.slotKey}`;
                 const currentStatus = getStatus(order);
                 const previousStatus = previousOrderStatuses[orderKey];
-                
+
                 // Only show notification if status actually changed (not on initial load)
                 if (previousStatus && previousStatus !== currentStatus) {
                     const statusMessages = {
@@ -1718,12 +1803,12 @@
                         completed: `✅ Állapot frissítve: ${order.time}-es rendelésed kész, átveheted!`,
                         pending: `⏳ Állapot frissítve: ${order.time}-es rendelésed visszaállítva függőben állapotba`
                     };
-                    
+
                     if (statusMessages[currentStatus]) {
                         showToast(statusMessages[currentStatus]);
                     }
                 }
-                
+
                 // Update tracked status
                 previousOrderStatuses[orderKey] = currentStatus;
             });
@@ -1738,12 +1823,12 @@
                     preparing: '<div class="order-status" style="color:#856404">🍳 Készülőben – kb. 10–15 perc!</div>',
                     completed: '<div class="order-status" style="color:#155724">✅ Kész – hamarosan átveheted!</div>'
                 }[status];
-                
+
                 const canEdit = canEditOrder(order.time, status);
-                const editButton = canEdit 
+                const editButton = canEdit
                     ? `<button class="btn-edit" data-time="${order.time}" data-slot="${order.slotKey}"><span>✏️ Szerkesztés</span></button>`
                     : `<button class="btn-edit" disabled style="opacity: 0.5; cursor: not-allowed;" title="Nem szerkeszthető (készülőben vagy 30 percen belül)"><span>✏️ Szerkesztés</span></button>`;
-                
+
                 return `
                     <div class="my-order-item${statusClass}" data-time="${order.time}" data-slot="${order.slotKey}">
                         <div class="my-order-badge">🍕 Saját rendelés</div>
@@ -1853,37 +1938,37 @@
 
         function displayStatistics(allOrders) {
             const activeOrders = allOrders.filter(o => !o.archived);
-            
+
             // Count ingredients
             const ingredients = {};
             let totalOrders = activeOrders.length;
             let lactoseFreeCount = 0;
             let vegetarianCount = 0;
-            
+
             activeOrders.forEach(order => {
                 // Count base toppings
                 if (order.baseTopping) {
                     ingredients[order.baseTopping] = (ingredients[order.baseTopping] || 0) + 1;
-                    
+
                     // Count vegetarian pizzas
                     if (order.baseTopping === 'vegetáriánus') {
                         vegetarianCount++;
                     }
                 }
-                
+
                 // Count extra toppings
                 [order.extraTopping1, order.extraTopping2, order.extraTopping3].forEach(topping => {
                     if (topping && topping !== '') {
                         ingredients[topping] = (ingredients[topping] || 0) + 1;
                     }
                 });
-                
+
                 // Count lactose-free
                 if (order.lactoseFree) {
                     lactoseFreeCount++;
                 }
             });
-            
+
             // Display stats cards
             const statsGrid = document.getElementById('statsGrid');
             statsGrid.innerHTML = `
@@ -1904,17 +1989,17 @@
                     <p>Normál pizza</p>
                 </div>
             `;
-            
+
             // Display ingredients list
             const ingredientsList = document.getElementById('ingredientsList');
             if (Object.keys(ingredients).length === 0) {
                 ingredientsList.innerHTML = '<div class="empty-state">Nincs adat</div>';
                 return;
             }
-            
+
             // Sort by count descending
             const sortedIngredients = Object.entries(ingredients).sort((a, b) => b[1] - a[1]);
-            
+
             ingredientsList.innerHTML = sortedIngredients.map(([name, count]) => `
                 <div class="ingredient-item">
                     <span class="ingredient-name">${name.charAt(0).toUpperCase() + name.slice(1)}</span>
@@ -1939,19 +2024,19 @@
             if (orderStatus === 'preparing' || orderStatus === 'completed') {
                 return false;
             }
-            
+
             // Cannot edit if less than 30 minutes before pickup time
             const now = new Date();
             const [hours, minutes] = orderTime.split(':').map(Number);
             const pickupTime = new Date();
             pickupTime.setHours(hours, minutes, 0, 0);
-            
+
             const timeDiff = (pickupTime - now) / (1000 * 60); // difference in minutes
-            
+
             if (timeDiff < 30) {
                 return false;
             }
-            
+
             return true;
         }
 
@@ -2034,7 +2119,7 @@
                     const order = snapshot.val();
                     order.status = toStatus;
                     order.completed = (toStatus === 'completed');
-                    
+
                     await set(orderRef, order);
                     const msgs = {
                         preparing: '🍳 Rendelés: Készülőben',
@@ -2056,7 +2141,7 @@
                 const snapshot = await get(orderRef);
                 if (snapshot.exists()) {
                     const order = snapshot.val();
-                    
+
                     // If auto-delete is enabled, archive the order
                     if (autoDeleteCompleted) {
                         order.archived = true;
@@ -2097,20 +2182,20 @@
             if (!confirm('Biztosan törölni szeretnéd az összes archivált rendelést? Ez a művelet nem vonható vissza!')) {
                 return;
             }
-            
+
             try {
                 const todayKey = getTodayKey();
                 const ordersRef = ref(database, `orders/${todayKey}`);
                 const snapshot = await get(ordersRef);
-                
+
                 if (!snapshot.exists()) {
                     showToast('⚠️ Nincsenek archivált rendelések');
                     return;
                 }
-                
+
                 const data = snapshot.val();
                 let deletedCount = 0;
-                
+
                 // Iterate through all time slots and delete archived orders
                 for (const [time, slots] of Object.entries(data)) {
                     if (slots && typeof slots === 'object') {
@@ -2123,7 +2208,7 @@
                         }
                     }
                 }
-                
+
                 if (deletedCount > 0) {
                     showToast(`✅ ${deletedCount} archivált rendelés törölve`);
                 } else {
@@ -2176,11 +2261,11 @@
                 const timeRef = ref(database, `orders/${todayKey}/${orderData.time}`);
                 const snapshot = await get(timeRef);
                 const existing = snapshot.exists() ? snapshot.val() : {};
-                
+
                 // Find next free slot key (skip archived slots entirely)
                 let slotKey = null;
                 let activeCount = 0;
-                
+
                 for (let i = 1; i <= MAX_SLOTS; i++) {
                     const key = `slot_${i}`;
                     if (!existing[key]) {
@@ -2194,17 +2279,17 @@
                         activeCount++;
                     }
                 }
-                
+
                 if (activeCount >= MAX_SLOTS) {
                     showToast('❌ Ez az időpont már tele van (max 4 rendelés)');
                     return false;
                 }
-                
+
                 if (!slotKey) {
                     showToast('❌ Nincs szabad hely erre az időpontra');
                     return false;
                 }
-                
+
                 const slotRef = ref(database, `orders/${todayKey}/${orderData.time}/${slotKey}`);
                 await set(slotRef, { ...orderData, slotKey });
                 return slotKey; // return slotKey so cookie can store time+slot
@@ -2381,17 +2466,26 @@
             document.getElementById('ordersList').classList.remove('active');
             document.getElementById('statisticsList').classList.remove('active');
             document.getElementById('archiveList').classList.remove('active');
-            
+
+
             // Load current settings
             document.getElementById('settingsAutoDelete').checked = autoDeleteCompleted;
             document.getElementById('settingsTimeInterval').value = TIME_SLOT_INTERVAL;
             document.getElementById('settingsMaxSlots').value = MAX_SLOTS;
+            document.getElementById('settingsOpenTime').value = OPEN_HOUR;
+            document.getElementById('settingsOpenMinute').value = OPEN_MINUTE;
+            document.getElementById('settingsCloseTime').value = CLOSE_HOUR;
+            document.getElementById('settingsCloseMinute').value = CLOSE_MINUTE;
         });
         document.getElementById('saveSettingsBtn').addEventListener('click', () => {
             const newAutoDelete = document.getElementById('settingsAutoDelete').checked;
             const newTimeInterval = parseInt(document.getElementById('settingsTimeInterval').value);
             const newMaxSlots = parseInt(document.getElementById('settingsMaxSlots').value);
-            
+            const newOpenHour = parseInt(document.getElementById('settingsOpenTime').value);
+            const newOpenMinute = parseInt(document.getElementById('settingsOpenMinute').value);
+            const newCloseHour = parseInt(document.getElementById('settingsCloseTime').value);
+            const newCloseMinute = parseInt(document.getElementById('settingsCloseMinute').value);
+
             // Validate inputs
             if (newTimeInterval < 5 || newTimeInterval > 30) {
                 showToast('❌ Az időslot intervallum 5-30 perc között lehet');
@@ -2401,21 +2495,47 @@
                 showToast('❌ A max pizzák száma 1-10 között lehet');
                 return;
             }
-            
+            if (newOpenHour < 0 || newOpenHour > 23 || newOpenMinute < 0 || newOpenMinute > 59) {
+                showToast('❌ Érvénytelen nyitási idő');
+                return;
+            }
+            if (newCloseHour < 0 || newCloseHour > 23 || newCloseMinute < 0 || newCloseMinute > 59) {
+                showToast('❌ Érvénytelen zárási idő');
+                return;
+            }
+
+            const openTime = newOpenHour * 60 + newOpenMinute;
+            const closeTime = newCloseHour * 60 + newCloseMinute;
+
+            if (closeTime <= openTime) {
+                showToast('❌ A zárás időpontja későbbi kell legyen mint a nyitás');
+                return;
+            }
+
             // Save to localStorage
             localStorage.setItem('pizza_auto_delete', newAutoDelete.toString());
             localStorage.setItem('pizza_time_interval', newTimeInterval.toString());
             localStorage.setItem('pizza_max_slots', newMaxSlots.toString());
-            
+            localStorage.setItem('pizza_open_hour', newOpenHour.toString());
+            localStorage.setItem('pizza_open_minute', newOpenMinute.toString());
+            localStorage.setItem('pizza_close_hour', newCloseHour.toString());
+            localStorage.setItem('pizza_close_minute', newCloseMinute.toString());
+
             // Update variables
             autoDeleteCompleted = newAutoDelete;
             TIME_SLOT_INTERVAL = newTimeInterval;
             MAX_SLOTS = newMaxSlots;
-            
-            showToast('✅ Beállítások mentve! Az időslot változás érvényesítéséhez frissítsd az oldalt.');
+            OPEN_HOUR = newOpenHour;
+            OPEN_MINUTE = newOpenMinute;
+            CLOSE_HOUR = newCloseHour;
+            CLOSE_MINUTE = newCloseMinute;
+
+            showToast('✅ Beállítások mentve! A változások érvényesítéséhez frissítsd az oldalt.');
         });
         document.getElementById('pizzaForm').addEventListener('submit', async (e) => {
             e.preventDefault();
+
+            const quantity = parseInt(document.getElementById('quantity').value) || 1;
             const orderData = {
                 name: document.getElementById('name').value,
                 time: document.getElementById('time').value,
@@ -2427,20 +2547,38 @@
                 completed: false,
                 timestamp: Date.now()
             };
-            const slotKey = await saveOrder(orderData);
-            if (slotKey) {
-                saveMyOrderToCookie(orderData.time, slotKey);
-                showToast('✅ Rendelés sikeresen leadva!');
+
+            // Mentsd le quantity-szer
+            let successCount = 0;
+            const savedSlots = [];
+
+            for (let i = 0; i < quantity; i++) {
+                const slotKey = await saveOrder(orderData);
+                if (slotKey) {
+                    saveMyOrderToCookie(orderData.time, slotKey);
+                    savedSlots.push(slotKey);
+                    successCount++;
+                } else {
+                    break; // Ha nem sikerült, állj meg
+                }
+            }
+
+            if (successCount > 0) {
+                const msg = successCount === 1
+                    ? '✅ Rendelés sikeresen leadva!'
+                    : `✅ ${successCount} rendelés sikeresen leadva!`;
+                showToast(msg);
                 document.getElementById('pizzaForm').reset();
-                
-                // Set callback to scroll after Firebase update (Firebase will reload all orders)
+                updateQuantityOptions(); // Reset quantity dropdown
+
+                // Set callback to scroll after Firebase update
                 pendingScrollCallback = () => {
-                    document.getElementById('myOrdersSection').scrollIntoView({ 
-                        behavior: 'smooth', 
-                        block: 'start' 
+                    document.getElementById('myOrdersSection').scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
                     });
                 };
-                
+
                 // Fallback scroll in case Firebase is slow
                 setTimeout(() => {
                     if (pendingScrollCallback) {
@@ -2451,6 +2589,7 @@
             }
         });
         document.getElementById('time').addEventListener('change', (e) => {
+            updateQuantityOptions();
             loadOrderForTime(e.target.value);
         });
 
@@ -2458,6 +2597,8 @@
         generateTimeSlots(); // initial render with no occupied times until Firebase responds
         loadOrders();
         loadArchiveOrders();
+        updateQuantityOptions(); // Initialize quantity dropdown
+
     </script>
 </body>
 
