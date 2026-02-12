@@ -1,0 +1,958 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pizzéria Rendelés</title>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Crimson+Pro:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #D4423F;
+            --primary-dark: #A82E2B;
+            --cream: #F5EFE0;
+            --dark: #2C1810;
+            --accent: #E8A13B;
+            --shadow: rgba(44, 24, 16, 0.15);
+        }
+
+        body {
+            font-family: 'Crimson Pro', serif;
+            background: linear-gradient(135deg, #F5EFE0 0%, #E8D5B7 100%);
+            min-height: 100vh;
+            padding: 2rem 1rem;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(212, 66, 63, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(232, 161, 59, 0.06) 0%, transparent 50%);
+            animation: floatBg 20s ease-in-out infinite;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        @keyframes floatBg {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            33% { transform: translate(2%, 2%) rotate(1deg); }
+            66% { transform: translate(-2%, 1%) rotate(-1deg); }
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+            animation: slideDown 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h1 {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: clamp(3rem, 8vw, 5.5rem);
+            color: var(--primary);
+            letter-spacing: 0.05em;
+            text-shadow: 3px 3px 0 var(--accent),
+                         6px 6px 0 rgba(0,0,0,0.1);
+            margin-bottom: 0.5rem;
+            line-height: 0.9;
+        }
+
+        .subtitle {
+            font-size: 1.3rem;
+            color: var(--dark);
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }
+
+        .form-card {
+            background: white;
+            border-radius: 20px;
+            padding: 2.5rem;
+            box-shadow: 
+                0 20px 60px var(--shadow),
+                0 0 0 1px rgba(212, 66, 63, 0.1);
+            animation: fadeInUp 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) 0.2s backwards;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .form-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 6px;
+            background: linear-gradient(90deg, var(--primary), var(--accent), var(--primary));
+            background-size: 200% 100%;
+            animation: gradientSlide 3s ease infinite;
+        }
+
+        @keyframes gradientSlide {
+            0%, 100% { background-position: 0% 0%; }
+            50% { background-position: 100% 0%; }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .toast {
+            position: fixed;
+            top: 2rem;
+            right: 2rem;
+            background: var(--primary);
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            font-weight: 600;
+            z-index: 1000;
+            animation: toastIn 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            max-width: 400px;
+        }
+
+        @keyframes toastIn {
+            from {
+                opacity: 0;
+                transform: translateX(100%) scale(0.8);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0) scale(1);
+            }
+        }
+
+        .toast.hide {
+            animation: toastOut 0.3s ease forwards;
+        }
+
+        @keyframes toastOut {
+            to {
+                opacity: 0;
+                transform: translateX(100%) scale(0.8);
+            }
+        }
+
+        .form-group {
+            margin-bottom: 1.8rem;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            color: var(--dark);
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+            letter-spacing: 0.02em;
+        }
+
+        input[type="text"],
+        select {
+            width: 100%;
+            padding: 0.9rem 1.2rem;
+            border: 2px solid #E0D5C7;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-family: 'Crimson Pro', serif;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            background: white;
+        }
+
+        input[type="text"]:focus,
+        select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(212, 66, 63, 0.1);
+            transform: translateY(-2px);
+        }
+
+        select {
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L6 6L11 1' stroke='%23D4423F' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 1rem center;
+            padding-right: 2.5rem;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            padding: 1rem;
+            background: #FFF9F0;
+            border-radius: 12px;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .checkbox-group:hover {
+            border-color: var(--accent);
+            background: #FFF5E6;
+        }
+
+        input[type="checkbox"] {
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
+            accent-color: var(--primary);
+        }
+
+        .checkbox-group label {
+            margin: 0;
+            cursor: pointer;
+            flex: 1;
+        }
+
+        .toppings-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        button {
+            width: 100%;
+            padding: 1.2rem 2rem;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            font-family: 'Bebas Neue', sans-serif;
+            letter-spacing: 0.1em;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 15px rgba(212, 66, 63, 0.3);
+            text-transform: uppercase;
+            position: relative;
+            overflow: hidden;
+        }
+
+        button::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        button:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(212, 66, 63, 0.4);
+        }
+
+        button:active {
+            transform: translateY(-1px);
+        }
+
+        .orders-section {
+            margin-top: 3rem;
+            animation: fadeInUp 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) 0.4s backwards;
+        }
+
+        .orders-section h2 {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 2.5rem;
+            color: var(--primary);
+            margin-bottom: 1.5rem;
+            letter-spacing: 0.05em;
+            text-align: center;
+        }
+
+        .orders-list {
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 20px 60px var(--shadow);
+        }
+
+        .order-item {
+            padding: 1.5rem;
+            border-left: 4px solid var(--accent);
+            background: #FFFAF5;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .order-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 4px 12px var(--shadow);
+        }
+
+        .order-time {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.5rem;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .order-details {
+            color: var(--dark);
+            line-height: 1.6;
+        }
+
+        .order-details strong {
+            color: var(--primary);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem 2rem;
+            color: #999;
+            font-style: italic;
+        }
+
+        .admin-panel {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            z-index: 999;
+        }
+
+        .admin-toggle {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            box-shadow: 0 4px 20px rgba(212, 66, 63, 0.4);
+            transition: all 0.3s ease;
+        }
+
+        .admin-toggle:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 25px rgba(212, 66, 63, 0.5);
+        }
+
+        .admin-login {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1001;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .admin-login.show {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .login-box {
+            background: white;
+            padding: 2.5rem;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 400px;
+            width: 90%;
+            animation: scaleIn 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        @keyframes scaleIn {
+            from {
+                transform: scale(0.8);
+                opacity: 0;
+            }
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .login-box h2 {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 2rem;
+            color: var(--primary);
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        .login-box input {
+            width: 100%;
+            padding: 0.9rem 1.2rem;
+            border: 2px solid #E0D5C7;
+            border-radius: 12px;
+            font-size: 1rem;
+            margin-bottom: 1rem;
+            font-family: 'Crimson Pro', serif;
+        }
+
+        .login-buttons {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .login-buttons button {
+            flex: 1;
+            padding: 0.9rem;
+            font-size: 1rem;
+        }
+
+        .btn-cancel {
+            background: #999;
+        }
+
+        .btn-cancel:hover {
+            background: #777;
+        }
+
+        .order-item {
+            padding: 1.5rem;
+            border-left: 4px solid var(--accent);
+            background: #FFFAF5;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            transition: all 0.3s ease;
+            display: flex;
+            gap: 1rem;
+            align-items: flex-start;
+        }
+
+        .order-item.completed {
+            opacity: 0.6;
+            border-left-color: #4CAF50;
+            background: #F1F8F4;
+        }
+
+        .order-checkbox {
+            flex-shrink: 0;
+            width: 28px;
+            height: 28px;
+            cursor: pointer;
+            accent-color: #4CAF50;
+            display: none;
+        }
+
+        .admin-mode .order-checkbox {
+            display: block;
+        }
+
+        .order-content {
+            flex: 1;
+        }
+
+        .order-status {
+            font-weight: 600;
+            color: #4CAF50;
+            margin-top: 0.5rem;
+            font-size: 0.95rem;
+        }
+
+        .admin-indicator {
+            position: fixed;
+            top: 1rem;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--primary);
+            color: white;
+            padding: 0.5rem 1.5rem;
+            border-radius: 20px;
+            font-weight: 600;
+            display: none;
+            z-index: 998;
+            box-shadow: 0 4px 15px rgba(212, 66, 63, 0.3);
+        }
+
+        .admin-indicator.show {
+            display: block;
+        }
+
+        @media (max-width: 640px) {
+            .form-card {
+                padding: 1.5rem;
+            }
+
+            h1 {
+                font-size: 3rem;
+            }
+
+            .toppings-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .toast {
+                left: 1rem;
+                right: 1rem;
+                top: 1rem;
+            }
+
+            .admin-panel {
+                bottom: 1rem;
+                right: 1rem;
+            }
+
+            .admin-toggle {
+                width: 50px;
+                height: 50px;
+                font-size: 1.2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Pizzéria</h1>
+            <div class="subtitle">Online Rendelés</div>
+        </header>
+
+        <div class="form-card">
+            <form id="pizzaForm">
+                <div class="form-group">
+                    <label for="name">Név *</label>
+                    <input type="text" id="name" required placeholder="Add meg a neved">
+                </div>
+
+                <div class="form-group">
+                    <label for="time">Átvétel időpontja *</label>
+                    <select id="time" required>
+                        <option value="">Válassz időpontot...</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="lactoseFree">
+                        <label for="lactoseFree">Laktózmentes</label>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="baseTopping">Alap feltét *</label>
+                    <select id="baseTopping" required>
+                        <option value="">Válassz...</option>
+                        <option value="sonka">Sonka</option>
+                        <option value="szalámi">Szalámi</option>
+                        <option value="tonhal">Tonhal</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Plusz feltétek (opcionális)</label>
+                    <div class="toppings-grid">
+                        <select id="extraTopping1">
+                            <option value="">Nincs</option>
+                            <option value="gomba">Gomba</option>
+                            <option value="kukorica">Kukorica</option>
+                            <option value="hagyma">Hagyma</option>
+                            <option value="olajbogyó">Olajbogyó</option>
+                            <option value="jalapeno">Jalapeno</option>
+                            <option value="pepperoni">Pepperoni</option>
+                            <option value="mozzarella">Mozzarella</option>
+                            <option value="rukkola">Rukkola</option>
+                        </select>
+                        <select id="extraTopping2">
+                            <option value="">Nincs</option>
+                            <option value="gomba">Gomba</option>
+                            <option value="kukorica">Kukorica</option>
+                            <option value="hagyma">Hagyma</option>
+                            <option value="olajbogyó">Olajbogyó</option>
+                            <option value="jalapeno">Jalapeno</option>
+                            <option value="pepperoni">Pepperoni</option>
+                            <option value="mozzarella">Mozzarella</option>
+                            <option value="rukkola">Rukkola</option>
+                        </select>
+                        <select id="extraTopping3">
+                            <option value="">Nincs</option>
+                            <option value="gomba">Gomba</option>
+                            <option value="kukorica">Kukorica</option>
+                            <option value="hagyma">Hagyma</option>
+                            <option value="olajbogyó">Olajbogyó</option>
+                            <option value="jalapeno">Jalapeno</option>
+                            <option value="pepperoni">Pepperoni</option>
+                            <option value="mozzarella">Mozzarella</option>
+                            <option value="rukkola">Rukkola</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button type="submit">Rendelés leadása</button>
+            </form>
+        </div>
+
+        <div class="orders-section">
+            <h2>Mai rendelések</h2>
+            <div class="orders-list" id="ordersList">
+                <div class="empty-state">Még nincsenek rendelések a mai napra.</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="admin-indicator" id="adminIndicator">🔐 Admin mód aktív</div>
+
+    <div class="admin-panel">
+        <button class="admin-toggle" id="adminToggle" title="Admin bejelentkezés">🔐</button>
+    </div>
+
+    <div class="admin-login" id="adminLogin">
+        <div class="login-box">
+            <h2>Admin bejelentkezés</h2>
+            <input type="password" id="adminPassword" placeholder="Jelszó">
+            <div class="login-buttons">
+                <button type="button" class="btn-cancel" id="cancelLogin">Mégse</button>
+                <button type="button" id="loginButton">Belépés</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getDatabase, ref, set, get, onValue, remove } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
+
+        // Firebase konfiguráció - CSERÉLD KI A SAJÁTODRA!
+        // https://console.firebase.google.com/ -> Create Project -> Realtime Database
+        const firebaseConfig = {
+            apiKey: "AIzaSyBo-OauYciOsJmll9ACoq2YD6cZpHb8u2w",
+            authDomain: "pizzarendeles-b447f.firebaseapp.com",
+            databaseURL: "https://pizzarendeles-b447f-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "pizzarendeles-b447f",
+            storageBucket: "pizzarendeles-b447f.firebasestorage.app",
+            messagingSenderId: "953608104638",
+            appId: "1:953608104638:web:1e44f11c902725fdce0cef",
+            measurementId: "G-RH394K7NFX"
+          };
+
+        // Firebase inicializálás
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+
+        // Admin state
+        let isAdminMode = false;
+        const ADMIN_PASSWORD = 'admin123';
+
+        // Generate time slots
+        function generateTimeSlots() {
+            const select = document.getElementById('time');
+            const startTime = 17 * 60 + 30;
+            const endTime = 20 * 60 + 30;
+            
+            for (let time = startTime; time <= endTime; time += 10) {
+                const hours = Math.floor(time / 60);
+                const minutes = time % 60;
+                const timeString = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+                const option = document.createElement('option');
+                option.value = timeString;
+                option.textContent = timeString;
+                select.appendChild(option);
+            }
+        }
+
+        // Toast notification
+        function showToast(message) {
+            const existingToast = document.querySelector('.toast');
+            if (existingToast) {
+                existingToast.remove();
+            }
+
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.textContent = message;
+            document.body.appendChild(toast);
+
+            setTimeout(() => {
+                toast.classList.add('hide');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // Get today's date key
+        function getTodayKey() {
+            const today = new Date();
+            return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+        }
+
+        // Load orders from Firebase
+        function loadOrders() {
+            const todayKey = getTodayKey();
+            const ordersRef = ref(database, `orders/${todayKey}`);
+            
+            onValue(ordersRef, (snapshot) => {
+                const data = snapshot.val();
+                if (!data) {
+                    document.getElementById('ordersList').innerHTML = 
+                        '<div class="empty-state">Még nincsenek rendelések a mai napra.</div>';
+                    return;
+                }
+
+                const orders = Object.keys(data).map(time => ({
+                    time,
+                    ...data[time]
+                }));
+
+                orders.sort((a, b) => a.time.localeCompare(b.time));
+                displayOrders(orders);
+            });
+        }
+
+        // Display orders
+        function displayOrders(orders) {
+            const ordersList = document.getElementById('ordersList');
+            
+            if (orders.length === 0) {
+                ordersList.innerHTML = '<div class="empty-state">Még nincsenek rendelések a mai napra.</div>';
+                return;
+            }
+
+            ordersList.innerHTML = orders.map(order => {
+                const extras = [order.extraTopping1, order.extraTopping2, order.extraTopping3]
+                    .filter(t => t && t !== '')
+                    .join(', ');
+                
+                const completedClass = order.completed ? ' completed' : '';
+                const completedStatus = order.completed ? '<div class="order-status">✓ Kész</div>' : '';
+                
+                return `
+                    <div class="order-item${completedClass}">
+                        <input type="checkbox" 
+                               class="order-checkbox" 
+                               ${order.completed ? 'checked' : ''} 
+                               data-time="${order.time}">
+                        <div class="order-content">
+                            <div class="order-time">${order.time}</div>
+                            <div class="order-details">
+                                <strong>Név:</strong> ${order.name}<br>
+                                <strong>Alap feltét:</strong> ${order.baseTopping}${extras ? '<br><strong>Plusz feltétek:</strong> ' + extras : ''}
+                                ${order.lactoseFree ? '<br><strong>Laktózmentes</strong>' : ''}
+                            </div>
+                            ${completedStatus}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            // Add event listeners to checkboxes
+            document.querySelectorAll('.order-checkbox').forEach(checkbox => {
+                checkbox.addEventListener('change', (e) => {
+                    toggleOrderCompletion(e.target.dataset.time, e.target.checked);
+                });
+            });
+        }
+
+        // Toggle order completion
+        async function toggleOrderCompletion(time, completed) {
+            try {
+                const todayKey = getTodayKey();
+                const orderRef = ref(database, `orders/${todayKey}/${time}`);
+                const snapshot = await get(orderRef);
+                
+                if (snapshot.exists()) {
+                    const order = snapshot.val();
+                    order.completed = completed;
+                    await set(orderRef, order);
+                    showToast(completed ? '✅ Rendelés elkészültként jelölve' : '🔄 Rendelés visszaállítva');
+                }
+            } catch (error) {
+                console.error('Error toggling completion:', error);
+                showToast('❌ Hiba történt');
+            }
+        }
+
+        // Load order for selected time
+        async function loadOrderForTime(time) {
+            if (!time) return;
+
+            try {
+                const todayKey = getTodayKey();
+                const orderRef = ref(database, `orders/${todayKey}/${time}`);
+                const snapshot = await get(orderRef);
+                
+                if (snapshot.exists()) {
+                    const order = snapshot.val();
+                    
+                    document.getElementById('name').value = order.name;
+                    document.getElementById('lactoseFree').checked = order.lactoseFree;
+                    document.getElementById('baseTopping').value = order.baseTopping;
+                    document.getElementById('extraTopping1').value = order.extraTopping1 || '';
+                    document.getElementById('extraTopping2').value = order.extraTopping2 || '';
+                    document.getElementById('extraTopping3').value = order.extraTopping3 || '';
+                    
+                    showToast('⚠️ Erre az időpontra már van rendelés - szerkesztheted');
+                } else {
+                    // Clear form if no order exists
+                    document.getElementById('name').value = '';
+                    document.getElementById('lactoseFree').checked = false;
+                    document.getElementById('baseTopping').value = '';
+                    document.getElementById('extraTopping1').value = '';
+                    document.getElementById('extraTopping2').value = '';
+                    document.getElementById('extraTopping3').value = '';
+                }
+            } catch (error) {
+                console.error('Error loading order:', error);
+            }
+        }
+
+        // Save order to Firebase
+        async function saveOrder(orderData) {
+            try {
+                const todayKey = getTodayKey();
+                const orderRef = ref(database, `orders/${todayKey}/${orderData.time}`);
+                await set(orderRef, orderData);
+                return true;
+            } catch (error) {
+                console.error('Error saving order:', error);
+                showToast('❌ Hiba történt a mentés során: ' + error.message);
+                return false;
+            }
+        }
+
+        // Admin login
+        function showAdminLogin() {
+            document.getElementById('adminLogin').classList.add('show');
+            document.getElementById('adminPassword').value = '';
+            document.getElementById('adminPassword').focus();
+        }
+
+        function hideAdminLogin() {
+            document.getElementById('adminLogin').classList.remove('show');
+        }
+
+        function toggleAdminMode(enable) {
+            isAdminMode = enable;
+            if (enable) {
+                document.body.classList.add('admin-mode');
+                document.getElementById('adminIndicator').classList.add('show');
+                document.getElementById('adminToggle').textContent = '🔓';
+                showToast('🔐 Admin mód aktiválva');
+            } else {
+                document.body.classList.remove('admin-mode');
+                document.getElementById('adminIndicator').classList.remove('show');
+                document.getElementById('adminToggle').textContent = '🔐';
+                showToast('👋 Admin mód kikapcsolva');
+            }
+        }
+
+        // Event listeners
+        document.getElementById('adminToggle').addEventListener('click', () => {
+            if (isAdminMode) {
+                toggleAdminMode(false);
+            } else {
+                showAdminLogin();
+            }
+        });
+
+        document.getElementById('cancelLogin').addEventListener('click', hideAdminLogin);
+
+        document.getElementById('loginButton').addEventListener('click', () => {
+            const password = document.getElementById('adminPassword').value;
+            if (password === ADMIN_PASSWORD) {
+                toggleAdminMode(true);
+                hideAdminLogin();
+            } else {
+                showToast('❌ Hibás jelszó');
+                document.getElementById('adminPassword').value = '';
+                document.getElementById('adminPassword').focus();
+            }
+        });
+
+        document.getElementById('adminPassword').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                document.getElementById('loginButton').click();
+            }
+        });
+
+        // Close admin login on background click
+        document.getElementById('adminLogin').addEventListener('click', (e) => {
+            if (e.target.id === 'adminLogin') {
+                hideAdminLogin();
+            }
+        });
+
+        // Form submission
+        document.getElementById('pizzaForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const orderData = {
+                name: document.getElementById('name').value,
+                time: document.getElementById('time').value,
+                lactoseFree: document.getElementById('lactoseFree').checked,
+                baseTopping: document.getElementById('baseTopping').value,
+                extraTopping1: document.getElementById('extraTopping1').value,
+                extraTopping2: document.getElementById('extraTopping2').value,
+                extraTopping3: document.getElementById('extraTopping3').value,
+                completed: false,
+                timestamp: Date.now()
+            };
+
+            const saved = await saveOrder(orderData);
+            if (saved) {
+                showToast('✅ Rendelés sikeresen leadva!');
+                document.getElementById('pizzaForm').reset();
+            }
+        });
+
+        // Time change handler
+        document.getElementById('time').addEventListener('change', (e) => {
+            loadOrderForTime(e.target.value);
+        });
+
+        // Initialize
+        generateTimeSlots();
+        loadOrders();
+    </script>
+</body>
+</html>
