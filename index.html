@@ -1233,6 +1233,106 @@
                 font-size: 0.8rem;
             }
         }
+
+        /* BESZÚRÁSI PONT: A CSS szekcióban, a meglévő stylusok után */
+
+        .toppings-manager {
+            background: #FFF9F0;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-top: 0.5rem;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .topping-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem;
+            background: white;
+            border-radius: 6px;
+            margin-bottom: 0.5rem;
+            border: 1px solid #E0D5C7;
+            transition: all 0.2s ease;
+        }
+
+        .topping-item:hover {
+            border-color: var(--primary);
+            box-shadow: 0 2px 8px rgba(212, 66, 63, 0.1);
+        }
+
+        .topping-item input[type="text"] {
+            flex: 1;
+            padding: 0.4rem 0.6rem;
+            border: 1px solid #E0D5C7;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            font-family: 'Crimson Pro', serif;
+        }
+
+        .topping-item input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            accent-color: var(--primary);
+        }
+
+        .topping-item button {
+            width: auto;
+            padding: 0.4rem 0.8rem;
+            font-size: 0.85rem;
+            background: #dc3545;
+            margin: 0;
+        }
+
+        .topping-item button:hover {
+            background: #c82333;
+            transform: translateY(-1px);
+        }
+
+        .btn-add-topping {
+            width: 100%;
+            padding: 0.6rem;
+            margin-top: 0.5rem;
+            background: #28a745;
+            font-size: 0.9rem;
+            box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+        }
+
+        .btn-add-topping:hover {
+            background: #218838;
+            box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4);
+        }
+
+        .topping-item.disabled {
+            opacity: 0.5;
+            background: #f5f5f5;
+        }
+
+        .admin-mode .toppings-manager {
+            max-height: 300px;
+        }
+
+        @media (max-width: 640px) {
+            .topping-item {
+                flex-wrap: wrap;
+            }
+
+            .topping-item input[type="text"] {
+                width: 100%;
+                order: 2;
+            }
+
+            .topping-item input[type="checkbox"] {
+                order: 1;
+            }
+
+            .topping-item button {
+                order: 3;
+                width: 100%;
+            }
+        }
     </style>
 </head>
 
@@ -1404,6 +1504,32 @@
                     </small>
                 </div>
 
+                <div class="settings-group">
+                    <label>🥓 Alap feltétek kezelése</label>
+                    <small style="color: #666; font-size: 0.85rem; display: block; margin-bottom: 0.5rem;">
+                        Milyen alap feltétekből választhatnak a rendelők? (Be/kikapcsolás, átnevezés, törlés)
+                    </small>
+                    <div id="baseToppingsManager" class="toppings-manager">
+                        <!-- Dinamikusan töltődik JavaScript-ből -->
+                    </div>
+                    <button type="button" id="addBaseToppingBtn" class="btn-add-topping">
+                        ➕ Új alap feltét hozzáadása
+                    </button>
+                </div>
+
+                <div class="settings-group">
+                    <label>🍄 Plusz feltétek kezelése</label>
+                    <small style="color: #666; font-size: 0.85rem; display: block; margin-bottom: 0.5rem;">
+                        Milyen extra feltétekből választhatnak a rendelők?
+                    </small>
+                    <div id="extraToppingsManager" class="toppings-manager">
+                        <!-- Dinamikusan töltődik JavaScript-ből -->
+                    </div>
+                    <button type="button" id="addExtraToppingBtn" class="btn-add-topping">
+                        ➕ Új plusz feltét hozzáadása
+                    </button>
+                </div>
+
                 <div
                     style="margin-top: 1.5rem; padding: 1rem; background: #FFF9F0; border-radius: 8px; text-align: center;">
                     <a href="reset.html"
@@ -1540,12 +1666,251 @@
         let CLOSE_HOUR = parseInt(localStorage.getItem('pizza_close_hour')) || 20;
         let CLOSE_MINUTE = parseInt(localStorage.getItem('pizza_close_minute')) || 30;
 
-
         // Track order statuses for change detection
         let previousOrderStatuses = {};
 
         // Auto-delete completed orders setting
         let autoDeleteCompleted = localStorage.getItem('pizza_auto_delete') === 'true' || false;
+
+        const DEFAULT_BASE_TOPPINGS = [
+            { id: 'sonka', name: 'Sonka', enabled: true },
+            { id: 'szalami', name: 'Szalámi', enabled: true },
+            { id: 'tonhal', name: 'Tonhal', enabled: true },
+            { id: 'vegetarianus', name: 'Vegetáriánus', enabled: true }
+        ];
+
+        const DEFAULT_EXTRA_TOPPINGS = [
+            { id: 'gomba', name: 'Gomba', enabled: true },
+            { id: 'kukorica', name: 'Kukorica', enabled: true },
+            { id: 'hagyma', name: 'Hagyma', enabled: true },
+            { id: 'olajbogyo', name: 'Olajbogyó', enabled: true },
+            { id: 'jalapeno', name: 'Jalapeno', enabled: true },
+            { id: 'pepperoni', name: 'Pepperoni', enabled: true },
+            { id: 'mozzarella', name: 'Mozzarella', enabled: true },
+            { id: 'rukkola', name: 'Rukkola', enabled: true }
+        ];
+
+        // Betöltés localStorage-ből vagy default használata
+        let baseToppings = JSON.parse(localStorage.getItem('pizza_base_toppings')) || DEFAULT_BASE_TOPPINGS;
+        let extraToppings = JSON.parse(localStorage.getItem('pizza_extra_toppings')) || DEFAULT_EXTRA_TOPPINGS;
+
+        // Mentés
+        function saveToppingsConfig() {
+            localStorage.setItem('pizza_base_toppings', JSON.stringify(baseToppings));
+            localStorage.setItem('pizza_extra_toppings', JSON.stringify(extraToppings));
+        }
+
+        // Alapanyag kezelő megjelenítése
+        function renderToppingsManager() {
+            // Alap feltétek
+            const baseContainer = document.getElementById('baseToppingsManager');
+            if (baseContainer) {
+                baseContainer.innerHTML = baseToppings.map((topping, index) => `
+            <div class="topping-item ${!topping.enabled ? 'disabled' : ''}">
+                <input type="checkbox" 
+                       ${topping.enabled ? 'checked' : ''} 
+                       onchange="toggleBaseTopping(${index})"
+                       title="Be/kikapcsolás">
+                <input type="text" 
+                       value="${topping.name}" 
+                       onchange="renameBaseTopping(${index}, this.value)"
+                       placeholder="Feltét neve">
+                <button onclick="deleteBaseTopping(${index})"><span>🗑️</span></button>
+            </div>
+        `).join('');
+            }
+
+            // Plusz feltétek
+            const extraContainer = document.getElementById('extraToppingsManager');
+            if (extraContainer) {
+                extraContainer.innerHTML = extraToppings.map((topping, index) => `
+            <div class="topping-item ${!topping.enabled ? 'disabled' : ''}">
+                <input type="checkbox" 
+                       ${topping.enabled ? 'checked' : ''} 
+                       onchange="toggleExtraTopping(${index})"
+                       title="Be/kikapcsolás">
+                <input type="text" 
+                       value="${topping.name}" 
+                       onchange="renameExtraTopping(${index}, this.value)"
+                       placeholder="Feltét neve">
+                <button onclick="deleteExtraTopping(${index})"><span>🗑️</span></button>
+            </div>
+        `).join('');
+            }
+        }
+
+        // Alap feltét be/kikapcsolás
+        function toggleBaseTopping(index) {
+            baseToppings[index].enabled = !baseToppings[index].enabled;
+            saveToppingsConfig();
+            renderToppingsManager();
+            updateFormSelects();
+        }
+
+        // Alap feltét átnevezés
+        function renameBaseTopping(index, newName) {
+            if (newName.trim()) {
+                baseToppings[index].name = newName.trim();
+                saveToppingsConfig();
+                updateFormSelects();
+            }
+        }
+
+        // Alap feltét törlés
+        function deleteBaseTopping(index) {
+            if (confirm(`Biztosan törölni szeretnéd: ${baseToppings[index].name}?`)) {
+                baseToppings.splice(index, 1);
+                saveToppingsConfig();
+                renderToppingsManager();
+                updateFormSelects();
+            }
+        }
+
+        // Plusz feltét be/kikapcsolás
+        function toggleExtraTopping(index) {
+            extraToppings[index].enabled = !extraToppings[index].enabled;
+            saveToppingsConfig();
+            renderToppingsManager();
+            updateFormSelects();
+        }
+
+        // Plusz feltét átnevezés
+        function renameExtraTopping(index, newName) {
+            if (newName.trim()) {
+                extraToppings[index].name = newName.trim();
+                saveToppingsConfig();
+                updateFormSelects();
+            }
+        }
+
+        // Plusz feltét törlés
+        function deleteExtraTopping(index) {
+            if (confirm(`Biztosan törölni szeretnéd: ${extraToppings[index].name}?`)) {
+                extraToppings.splice(index, 1);
+                saveToppingsConfig();
+                renderToppingsManager();
+                updateFormSelects();
+            }
+        }
+
+        // Űrlap select-ek frissítése a beállítások alapján
+        function updateFormSelects() {
+            // Alap feltét select (main form)
+            const baseSelect = document.getElementById('baseTopping');
+            const currentBase = baseSelect?.value;
+            if (baseSelect) {
+                baseSelect.innerHTML = '<option value="">Válassz...</option>' +
+                    baseToppings
+                        .filter(t => t.enabled)
+                        .map(t => `<option value="${t.id}">${t.name}</option>`)
+                        .join('');
+                if (currentBase && baseToppings.find(t => t.id === currentBase && t.enabled)) {
+                    baseSelect.value = currentBase;
+                }
+            }
+
+            // Plusz feltétek selectek (main form)
+            [1, 2, 3].forEach(num => {
+                const select = document.getElementById('extraTopping' + num);
+                const current = select?.value;
+                if (select) {
+                    select.innerHTML = '<option value="">Nincs</option>' +
+                        extraToppings
+                            .filter(t => t.enabled)
+                            .map(t => `<option value="${t.id}">${t.name}</option>`)
+                            .join('');
+                    if (current && extraToppings.find(t => t.id === current && t.enabled)) {
+                        select.value = current;
+                    }
+                }
+            });
+
+            // Edit form is frissítése
+            updateEditFormSelects();
+        }
+
+        // Edit form select-ek frissítése
+        function updateEditFormSelects() {
+            const editBaseSelect = document.getElementById('editBaseTopping');
+            const currentEditBase = editBaseSelect?.value;
+            if (editBaseSelect) {
+                editBaseSelect.innerHTML = '<option value="">Válassz...</option>' +
+                    baseToppings
+                        .filter(t => t.enabled)
+                        .map(t => `<option value="${t.id}">${t.name}</option>`)
+                        .join('');
+                if (currentEditBase && baseToppings.find(t => t.id === currentEditBase && t.enabled)) {
+                    editBaseSelect.value = currentEditBase;
+                }
+            }
+
+            [1, 2, 3].forEach(num => {
+                const select = document.getElementById('editExtraTopping' + num);
+                const current = select?.value;
+                if (select) {
+                    select.innerHTML = '<option value="">Nincs</option>' +
+                        extraToppings
+                            .filter(t => t.enabled)
+                            .map(t => `<option value="${t.id}">${t.name}</option>`)
+                            .join('');
+                    if (current && extraToppings.find(t => t.id === current && t.enabled)) {
+                        select.value = current;
+                    }
+                }
+            });
+        }
+
+        // Új alap feltét hozzáadása gomb
+        document.addEventListener('DOMContentLoaded', () => {
+            const addBaseBtn = document.getElementById('addBaseToppingBtn');
+            if (addBaseBtn) {
+                addBaseBtn.addEventListener('click', () => {
+                    const name = prompt('Új alap feltét neve:');
+                    if (name && name.trim()) {
+                        baseToppings.push({
+                            id: 'custom_' + Date.now(),
+                            name: name.trim(),
+                            enabled: true
+                        });
+                        saveToppingsConfig();
+                        renderToppingsManager();
+                        updateFormSelects();
+                        showToast('✅ Új alap feltét hozzáadva: ' + name.trim());
+                    }
+                });
+            }
+
+            // Új plusz feltét hozzáadása gomb
+            const addExtraBtn = document.getElementById('addExtraToppingBtn');
+            if (addExtraBtn) {
+                addExtraBtn.addEventListener('click', () => {
+                    const name = prompt('Új plusz feltét neve:');
+                    if (name && name.trim()) {
+                        extraToppings.push({
+                            id: 'custom_' + Date.now(),
+                            name: name.trim(),
+                            enabled: true
+                        });
+                        saveToppingsConfig();
+                        renderToppingsManager();
+                        updateFormSelects();
+                        showToast('✅ Új plusz feltét hozzáadva: ' + name.trim());
+                    }
+                });
+            }
+        });
+
+        // Segédfüggvény a feltét név megjelenítéséhez
+        function getToppingName(id) {
+            const baseTopping = baseToppings.find(t => t.id === id);
+            if (baseTopping) return baseTopping.name;
+
+            const extraTopping = extraToppings.find(t => t.id === id);
+            if (extraTopping) return extraTopping.name;
+
+            // Fallback régi rendszerhez - ha nincs az új rendszerben
+            return id.charAt(0).toUpperCase() + id.slice(1);
+        }
 
         // slotCounts: { "17:30": 2, "17:40": 4, ... }
         function generateTimeSlots(slotCounts = {}) {
@@ -1938,74 +2303,103 @@
 
         function displayStatistics(allOrders) {
             const activeOrders = allOrders.filter(o => !o.archived);
+            const completedOrders = allOrders.filter(o => !o.archived && getStatus(o) === 'completed');
 
-            // Count ingredients
-            const ingredients = {};
-            let totalOrders = activeOrders.length;
-            let lactoseFreeCount = 0;
-            let vegetarianCount = 0;
+            // Aktív rendelések alapanyagai
+            const activeIngredients = {};
+            let totalActive = activeOrders.length;
+            let activeLactoseFree = 0;
+            let activeVegetarian = 0;
 
             activeOrders.forEach(order => {
-                // Count base toppings
                 if (order.baseTopping) {
-                    ingredients[order.baseTopping] = (ingredients[order.baseTopping] || 0) + 1;
-
-                    // Count vegetarian pizzas
-                    if (order.baseTopping === 'vegetáriánus') {
-                        vegetarianCount++;
-                    }
+                    activeIngredients[order.baseTopping] = (activeIngredients[order.baseTopping] || 0) + 1;
+                    if (order.baseTopping === 'vegetarianus') activeVegetarian++;
                 }
-
-                // Count extra toppings
                 [order.extraTopping1, order.extraTopping2, order.extraTopping3].forEach(topping => {
                     if (topping && topping !== '') {
-                        ingredients[topping] = (ingredients[topping] || 0) + 1;
+                        activeIngredients[topping] = (activeIngredients[topping] || 0) + 1;
                     }
                 });
-
-                // Count lactose-free
-                if (order.lactoseFree) {
-                    lactoseFreeCount++;
-                }
+                if (order.lactoseFree) activeLactoseFree++;
             });
 
-            // Display stats cards
+            // Elkészült rendelések alapanyagai
+            const completedIngredients = {};
+            let totalCompleted = completedOrders.length;
+            let completedLactoseFree = 0;
+            let completedVegetarian = 0;
+
+            completedOrders.forEach(order => {
+                if (order.baseTopping) {
+                    completedIngredients[order.baseTopping] = (completedIngredients[order.baseTopping] || 0) + 1;
+                    if (order.baseTopping === 'vegetarianus') completedVegetarian++;
+                }
+                [order.extraTopping1, order.extraTopping2, order.extraTopping3].forEach(topping => {
+                    if (topping && topping !== '') {
+                        completedIngredients[topping] = (completedIngredients[topping] || 0) + 1;
+                    }
+                });
+                if (order.lactoseFree) completedLactoseFree++;
+            });
+
+            // Stats cards
             const statsGrid = document.getElementById('statsGrid');
             statsGrid.innerHTML = `
                 <div class="stat-card">
-                    <h3>${totalOrders}</h3>
-                    <p>Összes rendelés</p>
+                    <h3>${totalActive}</h3>
+                    <p>Összes aktív rendelés</p>
+                </div>
+                <div class="stat-card" style="border-left-color: #4CAF50;">
+                    <h3 style="color: #4CAF50;">${totalCompleted}</h3>
+                    <p>✅ Elkészült rendelés</p>
                 </div>
                 <div class="stat-card">
-                    <h3>${vegetarianCount}</h3>
-                    <p>Vegetáriánus pizza</p>
+                    <h3>${activeLactoseFree}</h3>
+                    <p>Laktózmentes (aktív)</p>
                 </div>
-                <div class="stat-card">
-                    <h3>${lactoseFreeCount}</h3>
-                    <p>Laktózmentes pizza</p>
-                </div>
-                <div class="stat-card">
-                    <h3>${totalOrders - lactoseFreeCount}</h3>
-                    <p>Normál pizza</p>
+                <div class="stat-card" style="border-left-color: #4CAF50;">
+                    <h3 style="color: #4CAF50;">${completedLactoseFree}</h3>
+                    <p>✅ Laktózmentes (elkészült)</p>
                 </div>
             `;
 
-            // Display ingredients list
+            // Ingredients list - most már két oszlop
             const ingredientsList = document.getElementById('ingredientsList');
-            if (Object.keys(ingredients).length === 0) {
-                ingredientsList.innerHTML = '<div class="empty-state">Nincs adat</div>';
-                return;
-            }
 
-            // Sort by count descending
-            const sortedIngredients = Object.entries(ingredients).sort((a, b) => b[1] - a[1]);
+            const sortedActive = Object.entries(activeIngredients).sort((a, b) => b[1] - a[1]);
+            const sortedCompleted = Object.entries(completedIngredients).sort((a, b) => b[1] - a[1]);
 
-            ingredientsList.innerHTML = sortedIngredients.map(([name, count]) => `
-                <div class="ingredient-item">
-                    <span class="ingredient-name">${name.charAt(0).toUpperCase() + name.slice(1)}</span>
-                    <span class="ingredient-count">${count} adag</span>
+            ingredientsList.innerHTML = `
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                    <div>
+                        <h4 style="font-family: 'Bebas Neue', sans-serif; font-size: 1.5rem; color: var(--primary); margin-bottom: 1rem; text-align: center;">
+                            📋 Aktív rendelések alapanyagai
+                        </h4>
+                        <div style="background: white; padding: 1rem; border-radius: 8px;">
+                            ${sortedActive.length > 0 ? sortedActive.map(([id, count]) => `
+                                <div class="ingredient-item">
+                                    <span class="ingredient-name">${getToppingName(id)}</span>
+                                    <span class="ingredient-count">${count} adag</span>
+                                </div>
+                            `).join('') : '<div class="empty-state">Nincs adat</div>'}
+                        </div>
+                    </div>
+                    <div>
+                        <h4 style="font-family: 'Bebas Neue', sans-serif; font-size: 1.5rem; color: #4CAF50; margin-bottom: 1rem; text-align: center;">
+                            ✅ Elkészült pizzák alapanyagai
+                        </h4>
+                        <div style="background: #F1F8F4; padding: 1rem; border-radius: 8px; border: 2px solid #4CAF50;">
+                            ${sortedCompleted.length > 0 ? sortedCompleted.map(([id, count]) => `
+                                <div class="ingredient-item">
+                                    <span class="ingredient-name">${getToppingName(id)}</span>
+                                    <span class="ingredient-count" style="color: #4CAF50;">${count} adag</span>
+                                </div>
+                            `).join('') : '<div class="empty-state">Még nincs elkészült pizza</div>'}
+                        </div>
+                    </div>
                 </div>
-            `).join('');
+            `;
         }
 
         // status helpers
@@ -2132,6 +2526,78 @@
                 console.error('Error updating status:', error);
                 showToast('❌ Hiba történt');
             }
+        }
+
+        // Cookie-ban tároljuk az utolsó rendelést
+        function saveLastOrder(orderData) {
+            const lastOrder = {
+                name: orderData.name,
+                lactoseFree: orderData.lactoseFree,
+                baseTopping: orderData.baseTopping,
+                extraTopping1: orderData.extraTopping1,
+                extraTopping2: orderData.extraTopping2,
+                extraTopping3: orderData.extraTopping3,
+                timestamp: Date.now()
+            };
+            setCookie('pizza_last_order', JSON.stringify(lastOrder), 30); // 30 nap
+        }
+
+        function getLastOrder() {
+            const lastOrderStr = getCookie('pizza_last_order');
+            if (!lastOrderStr) return null;
+            try {
+                return JSON.parse(lastOrderStr);
+            } catch (e) {
+                return null;
+            }
+        }
+
+        // Újrarendelés UI megjelenítése
+        function showReorderPrompt() {
+            const lastOrder = getLastOrder();
+            if (!lastOrder) return;
+
+            // Ne mutassuk ha az űrlap már ki van töltve
+            if (document.getElementById('name').value ||
+                document.getElementById('baseTopping').value) {
+                return;
+            }
+
+            // Ne mutassuk admin módban
+            if (isAdminMode) return;
+
+            const extras = [lastOrder.extraTopping1, lastOrder.extraTopping2, lastOrder.extraTopping3]
+                .filter(t => t && t !== '')
+                .map(id => getToppingName(id))
+                .join(', ');
+
+            const baseName = getToppingName(lastOrder.baseTopping);
+
+            const message = `🍕 Üdvözlünk vissza!\n\nElőző rendelésed:\n${baseName}${extras ? ' + ' + extras : ''}${lastOrder.lactoseFree ? ' (Laktózmentes)' : ''}\n\nSzeretnéd újra rendelni ugyanezt?`;
+
+            if (confirm(message)) {
+                fillFormWithLastOrder(lastOrder);
+                showToast('✅ Előző rendelés betöltve! Válassz időpontot és darabszámot.');
+
+                // Scroll az űrlaphoz
+                setTimeout(() => {
+                    document.getElementById('time').scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    document.getElementById('time').focus();
+                }, 500);
+            }
+        }
+
+        function fillFormWithLastOrder(order) {
+            document.getElementById('name').value = order.name || '';
+            document.getElementById('lactoseFree').checked = order.lactoseFree || false;
+            document.getElementById('baseTopping').value = order.baseTopping || '';
+            document.getElementById('extraTopping1').value = order.extraTopping1 || '';
+            document.getElementById('extraTopping2').value = order.extraTopping2 || '';
+            document.getElementById('extraTopping3').value = order.extraTopping3 || '';
+
+            // Triggereljük a change eventeket
+            filterMozzarella(order.lactoseFree || false);
+            filterMeatToppings(order.baseTopping === 'vegetarianus');
         }
 
         async function pickUpOrder(time, slotKey) {
@@ -2398,6 +2864,10 @@
                     completed: (wasStatus === 'completed'),
                     timestamp: Date.now()
                 };
+
+                saveLastOrder(orderData);
+
+
                 if (editingOrderOriginalTime !== newTime) {
                     // Moving to a different time slot — archive old, create new
                     await set(oldRef, { ...oldSnapshot.val(), archived: true, archivedAt: Date.now() });
@@ -2476,6 +2946,7 @@
             document.getElementById('settingsOpenMinute').value = OPEN_MINUTE;
             document.getElementById('settingsCloseTime').value = CLOSE_HOUR;
             document.getElementById('settingsCloseMinute').value = CLOSE_MINUTE;
+            renderToppingsManager();
         });
         document.getElementById('saveSettingsBtn').addEventListener('click', () => {
             const newAutoDelete = document.getElementById('settingsAutoDelete').checked;
@@ -2598,6 +3069,12 @@
         loadOrders();
         loadArchiveOrders();
         updateQuantityOptions(); // Initialize quantity dropdown
+        updateFormSelects();
+        setTimeout(() => {
+            if (!isAdminMode) {
+                showReorderPrompt();
+            }
+        }, 1500); // 1.5 mp késleltetéssel, hogy legyen idő betöltődni
 
     </script>
 </body>
