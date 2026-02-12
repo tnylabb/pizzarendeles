@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cookie törlés - Pizzéria</title>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Crimson+Pro:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #D4423F;
+            --primary-dark: #A82E2B;
+            --cream: #F5EFE0;
+            --dark: #2C1810;
+        }
+
+        body {
+            font-family: 'Crimson Pro', serif;
+            background: linear-gradient(135deg, #F5EFE0 0%, #E8D5B7 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .reset-box {
+            background: white;
+            padding: 3rem;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(44, 24, 16, 0.15);
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h1 {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 3rem;
+            color: var(--primary);
+            margin-bottom: 1rem;
+            letter-spacing: 0.05em;
+        }
+
+        p {
+            color: var(--dark);
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+
+        .icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+
+        .redirect-msg {
+            color: #666;
+            font-size: 0.9rem;
+            margin-top: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="reset-box">
+        <div class="icon">🗑️</div>
+        <h1>Cookie törlés</h1>
+        <p id="message">Cookie-k törlése folyamatban...</p>
+        <p class="redirect-msg" id="redirect"></p>
+    </div>
+
+    <script>
+        function deleteCookie(name) {
+            document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+        }
+
+        function clearAllPizzeriaCookies() {
+            const cookies = document.cookie.split(';');
+            let cleared = 0;
+            
+            for (let cookie of cookies) {
+                const cookieName = cookie.split('=')[0].trim();
+                // Delete all pizzeria-related cookies
+                if (cookieName.includes('pizzeria') || cookieName.includes('pizza') || cookieName.includes('my_orders')) {
+                    deleteCookie(cookieName);
+                    cleared++;
+                }
+            }
+            
+            return cleared;
+        }
+
+        // Clear cookies immediately
+        const clearedCount = clearAllPizzeriaCookies();
+        
+        // Update message
+        document.getElementById('message').textContent = `✅ ${clearedCount} cookie törölve!`;
+        document.getElementById('redirect').textContent = 'Átirányítás a főoldalra 2 másodperc múlva...';
+
+        // Redirect after 2 seconds
+        setTimeout(() => {
+            window.location.href = 'index.html';
+        }, 2000);
+    </script>
+</body>
+</html>
