@@ -896,6 +896,32 @@
             display: block;
         }
 
+        .archive-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .btn-clear-archive {
+            padding: 0.7rem 1.5rem;
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Crimson Pro', serif;
+        }
+
+        .btn-clear-archive:hover {
+            background: #c82333;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+        }
+
         @media (max-width: 640px) {
             .form-card {
                 padding: 1.5rem;
@@ -972,7 +998,8 @@
                             <option value="kukorica">Kukorica</option>
                             <option value="hagyma">Hagyma</option>
                             <option value="olajbogyó">Olajbogyó</option>
-                            <option value="csípős">Csípős (Jalapeno/Pepperoni)</option>
+                            <option value="jalapeno">Jalapeno</option>
+                            <option value="pepperoni">Pepperoni</option>
                             <option value="mozzarella">Mozzarella</option>
                             <option value="rukkola">Rukkola</option>
                         </select>
@@ -982,7 +1009,8 @@
                             <option value="kukorica">Kukorica</option>
                             <option value="hagyma">Hagyma</option>
                             <option value="olajbogyó">Olajbogyó</option>
-                            <option value="csípős">Csípős (Jalapeno/Pepperoni)</option>
+                            <option value="jalapeno">Jalapeno</option>
+                            <option value="pepperoni">Pepperoni</option>
                             <option value="mozzarella">Mozzarella</option>
                             <option value="rukkola">Rukkola</option>
                         </select>
@@ -992,7 +1020,8 @@
                             <option value="kukorica">Kukorica</option>
                             <option value="hagyma">Hagyma</option>
                             <option value="olajbogyó">Olajbogyó</option>
-                            <option value="csípős">Csípős (Jalapeno/Pepperoni)</option>
+                            <option value="jalapeno">Jalapeno</option>
+                            <option value="pepperoni">Pepperoni</option>
                             <option value="mozzarella">Mozzarella</option>
                             <option value="rukkola">Rukkola</option>
                         </select>
@@ -1024,7 +1053,13 @@
                 <div class="ingredients-list" id="ingredientsList"></div>
             </div>
             <div class="orders-list" id="archiveList">
-                <div class="empty-state">Még nincsenek archivált rendelések.</div>
+                <div class="archive-header">
+                    <div></div>
+                    <button class="btn-clear-archive" id="clearArchiveBtn">🗑️ Összes archív törlése</button>
+                </div>
+                <div id="archiveContent">
+                    <div class="empty-state">Még nincsenek archivált rendelések.</div>
+                </div>
             </div>
         </div>
     </div>
@@ -1082,7 +1117,8 @@
                             <option value="kukorica">Kukorica</option>
                             <option value="hagyma">Hagyma</option>
                             <option value="olajbogyó">Olajbogyó</option>
-                            <option value="csípős">Csípős (Jalapeno/Pepperoni)</option>
+                            <option value="jalapeno">Jalapeno</option>
+                            <option value="pepperoni">Pepperoni</option>
                             <option value="mozzarella">Mozzarella</option>
                             <option value="rukkola">Rukkola</option>
                         </select>
@@ -1092,7 +1128,8 @@
                             <option value="kukorica">Kukorica</option>
                             <option value="hagyma">Hagyma</option>
                             <option value="olajbogyó">Olajbogyó</option>
-                            <option value="csípős">Csípős (Jalapeno/Pepperoni)</option>
+                            <option value="jalapeno">Jalapeno</option>
+                            <option value="pepperoni">Pepperoni</option>
                             <option value="mozzarella">Mozzarella</option>
                             <option value="rukkola">Rukkola</option>
                         </select>
@@ -1102,7 +1139,8 @@
                             <option value="kukorica">Kukorica</option>
                             <option value="hagyma">Hagyma</option>
                             <option value="olajbogyó">Olajbogyó</option>
-                            <option value="csípős">Csípős (Jalapeno/Pepperoni)</option>
+                            <option value="jalapeno">Jalapeno</option>
+                            <option value="pepperoni">Pepperoni</option>
                             <option value="mozzarella">Mozzarella</option>
                             <option value="rukkola">Rukkola</option>
                         </select>
@@ -1237,7 +1275,7 @@
         }
 
         function filterMeatToppings(isVegetarian, prefix = '') {
-            // Disable meat toppings when vegetarian base is selected
+            // Disable pepperoni when vegetarian base is selected
             const suffix = prefix === 'edit' ? 'ExtraTopping' : 'extraTopping';
             const selects = [
                 document.getElementById(prefix + suffix + '1'),
@@ -1245,7 +1283,7 @@
                 document.getElementById(prefix + suffix + '3')
             ].filter(Boolean);
             
-            const meatToppings = ['csípős']; // Csípős contains pepperoni which is meat
+            const meatToppings = ['pepperoni']; // Only pepperoni is meat
             
             selects.forEach(select => {
                 meatToppings.forEach(meat => {
@@ -1389,6 +1427,8 @@
             return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
         }
 
+        let pendingScrollCallback = null;
+
         function loadOrders() {
             const todayKey = getTodayKey();
             const ordersRef = ref(database, `orders/${todayKey}`);
@@ -1432,6 +1472,12 @@
                 displayArchiveOrders(archived);
                 displayMyOrders(allOrders);
                 displayStatistics(allOrders);
+
+                // Execute pending scroll callback if exists
+                if (pendingScrollCallback) {
+                    pendingScrollCallback();
+                    pendingScrollCallback = null;
+                }
             });
         }
 
@@ -1440,12 +1486,12 @@
         }
 
         function displayArchiveOrders(orders) {
-            const archiveList = document.getElementById('archiveList');
+            const archiveContent = document.getElementById('archiveContent');
             if (orders.length === 0) {
-                archiveList.innerHTML = '<div class="empty-state">Még nincsenek archivált rendelések.</div>';
+                archiveContent.innerHTML = '<div class="empty-state">Még nincsenek archivált rendelések.</div>';
                 return;
             }
-            archiveList.innerHTML = orders.map(order => {
+            archiveContent.innerHTML = orders.map(order => {
                 const extras = [order.extraTopping1, order.extraTopping2, order.extraTopping3]
                     .filter(t => t && t !== '').join(', ');
                 const archivedDate = order.archivedAt ? new Date(order.archivedAt).toLocaleString('hu-HU') : '';
@@ -1470,11 +1516,17 @@
             const ingredients = {};
             let totalOrders = activeOrders.length;
             let lactoseFreeCount = 0;
+            let vegetarianCount = 0;
             
             activeOrders.forEach(order => {
                 // Count base toppings
                 if (order.baseTopping) {
                     ingredients[order.baseTopping] = (ingredients[order.baseTopping] || 0) + 1;
+                    
+                    // Count vegetarian pizzas
+                    if (order.baseTopping === 'vegetáriánus') {
+                        vegetarianCount++;
+                    }
                 }
                 
                 // Count extra toppings
@@ -1496,6 +1548,10 @@
                 <div class="stat-card">
                     <h3>${totalOrders}</h3>
                     <p>Összes rendelés</p>
+                </div>
+                <div class="stat-card">
+                    <h3>${vegetarianCount}</h3>
+                    <p>Vegetáriánus pizza</p>
                 </div>
                 <div class="stat-card">
                     <h3>${lactoseFreeCount}</h3>
@@ -1643,6 +1699,48 @@
             } catch (error) {
                 console.error('Error archiving order:', error);
                 showToast('❌ Hiba történt az archiválás során');
+            }
+        }
+
+        async function clearAllArchive() {
+            if (!confirm('Biztosan törölni szeretnéd az összes archivált rendelést? Ez a művelet nem vonható vissza!')) {
+                return;
+            }
+            
+            try {
+                const todayKey = getTodayKey();
+                const ordersRef = ref(database, `orders/${todayKey}`);
+                const snapshot = await get(ordersRef);
+                
+                if (!snapshot.exists()) {
+                    showToast('⚠️ Nincsenek archivált rendelések');
+                    return;
+                }
+                
+                const data = snapshot.val();
+                let deletedCount = 0;
+                
+                // Iterate through all time slots and delete archived orders
+                for (const [time, slots] of Object.entries(data)) {
+                    if (slots && typeof slots === 'object') {
+                        for (const [slotKey, order] of Object.entries(slots)) {
+                            if (order && order.archived) {
+                                const orderRef = ref(database, `orders/${todayKey}/${time}/${slotKey}`);
+                                await remove(orderRef);
+                                deletedCount++;
+                            }
+                        }
+                    }
+                }
+                
+                if (deletedCount > 0) {
+                    showToast(`✅ ${deletedCount} archivált rendelés törölve`);
+                } else {
+                    showToast('⚠️ Nincsenek archivált rendelések');
+                }
+            } catch (error) {
+                console.error('Error clearing archive:', error);
+                showToast('❌ Hiba történt a törlés során');
             }
         }
 
@@ -1803,6 +1901,7 @@
         document.getElementById('editBaseTopping').addEventListener('change', (e) => {
             filterMeatToppings(e.target.value === 'vegetáriánus', 'edit');
         });
+        document.getElementById('clearArchiveBtn').addEventListener('click', clearAllArchive);
         document.getElementById('editForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const newTime = document.getElementById('editTime').value;
@@ -1894,13 +1993,42 @@
                 saveMyOrderToCookie(orderData.time, slotKey);
                 showToast('✅ Rendelés sikeresen leadva!');
                 document.getElementById('pizzaForm').reset();
-                // Wait a bit longer for Firebase onValue to trigger and update the DOM
-                setTimeout(() => {
+                
+                // Optimistic UI update - display order immediately
+                const myList = document.getElementById('myOrdersList');
+                const extras = [orderData.extraTopping1, orderData.extraTopping2, orderData.extraTopping3]
+                    .filter(t => t && t !== '').join(', ');
+                myList.innerHTML = `
+                    <div class="my-order-item" data-time="${orderData.time}" data-slot="${slotKey}">
+                        <div class="my-order-badge">🍕 Saját rendelés</div>
+                        <div class="order-time">${orderData.time}</div>
+                        <div class="order-details">
+                            <strong>Név:</strong> ${orderData.name}<br>
+                            <strong>Alap feltét:</strong> ${orderData.baseTopping}
+                            ${extras ? '<br><strong>Plusz feltétek:</strong> ' + extras : ''}
+                            ${orderData.lactoseFree ? '<br><strong>Laktózmentes</strong>' : ''}
+                        </div>
+                        <div class="order-actions">
+                            <button class="btn-edit" data-time="${orderData.time}" data-slot="${slotKey}"><span>✏️ Szerkesztés</span></button>
+                            <button class="btn-delete" data-time="${orderData.time}" data-slot="${slotKey}"><span>🗑️ Törlés</span></button>
+                        </div>
+                    </div>`;
+                
+                // Set callback to scroll after Firebase update
+                pendingScrollCallback = () => {
                     document.getElementById('myOrdersSection').scrollIntoView({ 
                         behavior: 'smooth', 
                         block: 'start' 
                     });
-                }, 300);
+                };
+                
+                // Fallback scroll in case Firebase is slow
+                setTimeout(() => {
+                    if (pendingScrollCallback) {
+                        pendingScrollCallback();
+                        pendingScrollCallback = null;
+                    }
+                }, 500);
             }
         });
         document.getElementById('time').addEventListener('change', (e) => {
