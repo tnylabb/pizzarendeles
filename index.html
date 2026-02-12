@@ -1696,6 +1696,13 @@
                 saveMyOrderToCookie(orderData.time, slotKey);
                 showToast('✅ Rendelés sikeresen leadva!');
                 document.getElementById('pizzaForm').reset();
+                // Scroll to orders section smoothly
+                setTimeout(() => {
+                    document.getElementById('myOrdersSection').scrollIntoView({ 
+                        behavior: 'smooth', 
+                        block: 'start' 
+                    });
+                }, 100);
             }
         });
         document.getElementById('time').addEventListener('change', (e) => {
