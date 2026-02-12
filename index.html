@@ -1293,6 +1293,7 @@
             const todayKey = getTodayKey();
             const ordersRef = ref(database, `orders/${todayKey}`);
             onValue(ordersRef, (snapshot) => {
+                console.log('🔥 Firebase onValue triggered - orders updated');
                 const data = snapshot.val();
                 if (!data) {
                     generateTimeSlots([]); // no occupied slots
@@ -1323,6 +1324,7 @@
                 for (const o of active) {
                     slotCounts[o.time] = (slotCounts[o.time] || 0) + 1;
                 }
+                console.log('📊 Slot counts:', slotCounts);
                 generateTimeSlots(slotCounts);
 
                 displayOrders(active);
@@ -1520,22 +1522,35 @@
                 const timeRef = ref(database, `orders/${todayKey}/${orderData.time}`);
                 const snapshot = await get(timeRef);
                 const existing = snapshot.exists() ? snapshot.val() : {};
-                // Find active (non-archived) slot count
-                const activeSlots = Object.values(existing).filter(s => s && !s.archived);
-                if (activeSlots.length >= MAX_SLOTS) {
+                
+                // Find next free slot key (skip archived slots entirely)
+                let slotKey = null;
+                let activeCount = 0;
+                
+                for (let i = 1; i <= MAX_SLOTS; i++) {
+                    const key = `slot_${i}`;
+                    if (!existing[key]) {
+                        // Completely empty slot - use this
+                        if (!slotKey) slotKey = key;
+                    } else if (existing[key].archived) {
+                        // Archived slot - can reuse
+                        if (!slotKey) slotKey = key;
+                    } else {
+                        // Active order - count it
+                        activeCount++;
+                    }
+                }
+                
+                if (activeCount >= MAX_SLOTS) {
                     showToast('❌ Ez az időpont már tele van (max 4 rendelés)');
                     return false;
                 }
-                // Find next free slot key
-                let slotKey = null;
-                for (let i = 1; i <= MAX_SLOTS; i++) {
-                    const key = `slot_${i}`;
-                    if (!existing[key] || existing[key].archived) { slotKey = key; break; }
-                }
+                
                 if (!slotKey) {
                     showToast('❌ Nincs szabad hely erre az időpontra');
                     return false;
                 }
+                
                 const slotRef = ref(database, `orders/${todayKey}/${orderData.time}/${slotKey}`);
                 await set(slotRef, { ...orderData, slotKey });
                 return slotKey; // return slotKey so cookie can store time+slot
@@ -1696,13 +1711,13 @@
                 saveMyOrderToCookie(orderData.time, slotKey);
                 showToast('✅ Rendelés sikeresen leadva!');
                 document.getElementById('pizzaForm').reset();
-                // Scroll to orders section smoothly
+                // Wait a bit longer for Firebase onValue to trigger and update the DOM
                 setTimeout(() => {
                     document.getElementById('myOrdersSection').scrollIntoView({ 
                         behavior: 'smooth', 
                         block: 'start' 
                     });
-                }, 100);
+                }, 300);
             }
         });
         document.getElementById('time').addEventListener('change', (e) => {
