@@ -494,7 +494,6 @@
             cursor: pointer;
             transition: all 0.3s ease;
             font-family: 'Crimson Pro', serif;
-            /* Fix: prevent click from hitting child text nodes */
             pointer-events: auto;
         }
 
@@ -819,6 +818,16 @@
             flex: 1;
             padding: 0.9rem;
             font-size: 1rem;
+        }
+
+        /* Show edit/delete buttons for user's own orders */
+        .my-order-item .order-actions {
+            display: flex;
+        }
+
+        .my-order-item .btn-edit,
+        .my-order-item .btn-delete {
+            display: block;
         }
 
         @media (max-width: 640px) {
@@ -1209,9 +1218,9 @@
             setCookie(cookieName, JSON.stringify(entries), 1);
         }
 
-        function updateMyOrderCookie(oldTime, newTime, slotKey) {
-            removeMyOrderFromCookie(oldTime, slotKey);
-            saveMyOrderToCookie(newTime, slotKey);
+        function updateMyOrderCookie(oldTime, oldSlotKey, newTime, newSlotKey) {
+            removeMyOrderFromCookie(oldTime, oldSlotKey);
+            saveMyOrderToCookie(newTime, newSlotKey);
         }
 
         function getMyOrderEntries() {
@@ -1223,7 +1232,7 @@
             return parsed.map(e => typeof e === 'string' ? { time: e, slotKey: null } : e);
         }
 
-        // Display only this device's orders
+        // Display only this device's orders with edit/delete buttons
         function displayMyOrders(allOrders) {
             const myEntries = getMyOrderEntries();
             const myList = document.getElementById('myOrdersList');
@@ -1248,7 +1257,7 @@
                     completed: '<div class="order-status" style="color:#155724">✅ Kész – hamarosan átveheted!</div>'
                 }[status];
                 return `
-                    <div class="my-order-item${statusClass}">
+                    <div class="my-order-item${statusClass}" data-time="${order.time}" data-slot="${order.slotKey}">
                         <div class="my-order-badge">🍕 Saját rendelés</div>
                         <div class="order-time">${order.time}</div>
                         <div class="order-details">
@@ -1258,6 +1267,10 @@
                             ${order.lactoseFree ? '<br><strong>Laktózmentes</strong>' : ''}
                         </div>
                         ${statusMsg}
+                        <div class="order-actions">
+                            <button class="btn-edit" data-time="${order.time}" data-slot="${order.slotKey}"><span>✏️ Szerkesztés</span></button>
+                            <button class="btn-delete" data-time="${order.time}" data-slot="${order.slotKey}"><span>🗑️ Törlés</span></button>
+                        </div>
                     </div>`;
             }).join('');
         }
@@ -1607,7 +1620,6 @@
                 const orderData = {
                     name: document.getElementById('editName').value,
                     time: newTime,
-                    slotKey: editingOrderSlotKey,
                     lactoseFree: document.getElementById('editLactoseFree').checked,
                     baseTopping: document.getElementById('editBaseTopping').value,
                     extraTopping1: document.getElementById('editExtraTopping1').value,
@@ -1633,9 +1645,10 @@
                     orderData.slotKey = newSlotKey;
                     const newSlotRef = ref(database, `orders/${todayKey}/${newTime}/${newSlotKey}`);
                     await set(newSlotRef, orderData);
-                    updateMyOrderCookie(editingOrderOriginalTime, newTime);
+                    updateMyOrderCookie(editingOrderOriginalTime, editingOrderSlotKey, newTime, newSlotKey);
                 } else {
                     // Same time, update in place
+                    orderData.slotKey = editingOrderSlotKey;
                     await set(oldRef, orderData);
                 }
                 showToast('✅ Rendelés sikeresen módosítva!');
