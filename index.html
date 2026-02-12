@@ -507,6 +507,15 @@
             background: #E0E0E0;
         }
 
+        .btn-status.to-picked-up {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-status.to-picked-up:hover {
+            background: #218838;
+        }
+
         .order-item.preparing {
             border-left-color: #FFC107;
             background: #FFFDF0;
@@ -844,12 +853,14 @@
         }
 
         #archiveList,
-        #statisticsList {
+        #statisticsList,
+        #settingsList {
             display: none;
         }
 
         .admin-mode #archiveList.active,
-        .admin-mode #statisticsList.active {
+        .admin-mode #statisticsList.active,
+        .admin-mode #settingsList.active {
             display: block;
         }
 
@@ -973,6 +984,79 @@
             display: flex;
         }
 
+        .settings-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1002;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .settings-modal.show {
+            display: flex;
+        }
+
+        .settings-box {
+            background: white;
+            padding: 2.5rem;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 500px;
+            width: 90%;
+            animation: scaleIn 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        .settings-box h2 {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 2rem;
+            color: var(--primary);
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        .settings-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .settings-group label {
+            display: block;
+            font-weight: 600;
+            color: var(--dark);
+            margin-bottom: 0.5rem;
+            font-size: 1rem;
+        }
+
+        .settings-group input[type="number"] {
+            width: 100%;
+            padding: 0.8rem;
+            border: 2px solid #E0D5C7;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-family: 'Crimson Pro', serif;
+        }
+
+        .settings-group .checkbox-group {
+            margin-bottom: 0;
+        }
+
+        .settings-buttons {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 2rem;
+        }
+
+        .settings-buttons button {
+            flex: 1;
+            padding: 0.9rem;
+            font-size: 1rem;
+        }
+
         .edit-box {
             background: white;
             padding: 2.5rem;
@@ -1070,6 +1154,84 @@
                 height: 50px;
                 font-size: 1.2rem;
             }
+
+            /* Mobile admin view optimizations */
+            .admin-mode .container {
+                max-width: 100%;
+                padding: 0 0.5rem;
+            }
+
+            .admin-mode .orders-section h2 {
+                font-size: 1.5rem;
+                margin-bottom: 0.8rem;
+            }
+
+            .admin-mode .orders-tabs {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            .admin-mode .tab-button {
+                padding: 0.6rem 1rem;
+                font-size: 0.85rem;
+            }
+
+            .admin-mode .orders-list {
+                padding: 1rem;
+            }
+
+            .admin-mode .order-item {
+                padding: 0.8rem;
+                flex-direction: column;
+            }
+
+            .admin-mode .order-time {
+                font-size: 1.2rem;
+            }
+
+            .admin-mode .order-details {
+                font-size: 0.85rem;
+            }
+
+            .admin-mode .order-actions {
+                flex-direction: column;
+                width: 100%;
+            }
+
+            .admin-mode .btn-status,
+            .admin-mode .btn-edit,
+            .admin-mode .btn-delete {
+                width: 100%;
+                padding: 0.5rem;
+                font-size: 0.85rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 0.8rem;
+            }
+
+            .admin-mode .stat-card {
+                padding: 0.8rem;
+            }
+
+            .admin-mode .stat-card h3 {
+                font-size: 1.8rem;
+            }
+
+            .admin-mode .stat-card p {
+                font-size: 0.75rem;
+            }
+
+            .auto-delete-toggle {
+                top: 3.5rem;
+                font-size: 0.8rem;
+                padding: 0.4rem 0.8rem;
+            }
+
+            .auto-delete-toggle label {
+                font-size: 0.8rem;
+            }
         }
     </style>
 </head>
@@ -1162,6 +1324,7 @@
                 <button class="tab-button active" id="activeTab">Aktív rendelések</button>
                 <button class="tab-button" id="statisticsTab">Statisztika</button>
                 <button class="tab-button" id="archiveTab">Archív rendelések</button>
+                <button class="tab-button" id="settingsTab">⚙️ Beállítások</button>
             </div>
             <div class="orders-list active" id="ordersList">
                 <div class="empty-state">Még nincsenek rendelések a mai napra.</div>
@@ -1180,14 +1343,33 @@
                     <div class="empty-state">Még nincsenek archivált rendelések.</div>
                 </div>
             </div>
+            <div class="orders-list" id="settingsList">
+                <h3 style="font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; color: var(--primary); margin-bottom: 1.5rem;">⚙️ Rendszer beállítások</h3>
+                <div class="settings-group">
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="settingsAutoDelete">
+                        <label for="settingsAutoDelete">🗑️ Automatikus törlés amikor átvette a rendelő</label>
+                    </div>
+                </div>
+                <div class="settings-group">
+                    <label for="settingsTimeInterval">⏱️ Időslot intervallum (perc)</label>
+                    <input type="number" id="settingsTimeInterval" min="5" max="30" step="5" placeholder="10">
+                    <small style="color: #666; font-size: 0.85rem;">Hány percenként lehet rendelni (pl. 10 perc = 17:30, 17:40, 17:50...)</small>
+                </div>
+                <div class="settings-group">
+                    <label for="settingsMaxSlots">🍕 Max pizzák egy időslotban</label>
+                    <input type="number" id="settingsMaxSlots" min="1" max="10" step="1" placeholder="4">
+                    <small style="color: #666; font-size: 0.85rem;">Hány pizza férhet egy időpontba egyszerre</small>
+                </div>
+                <button id="saveSettingsBtn" style="margin-top: 1rem;">💾 Beállítások mentése</button>
+                <div style="margin-top: 1rem; padding: 1rem; background: #FFF9F0; border-radius: 8px; border-left: 4px solid var(--accent);">
+                    <strong>⚠️ Figyelem:</strong> Az időslot intervallum módosítása után frissítsd az oldalt, hogy érvénybe lépjen!
+                </div>
+            </div>
         </div>
     </div>
 
     <div class="admin-indicator" id="adminIndicator">🔐 Admin mód aktív</div>
-    <div class="auto-delete-toggle" id="autoDeleteToggle">
-        <input type="checkbox" id="autoDeleteCheckbox">
-        <label for="autoDeleteCheckbox">🗑️ Automatikus törlés átvételkor</label>
-    </div>
     <div class="admin-panel">
         <button class="admin-toggle" id="adminToggle" title="Admin bejelentkezés">🔐</button>
     </div>
@@ -1295,15 +1477,17 @@
         const database = getDatabase(app);
 
         let isAdminMode = false;
-        const ADMIN_PASSWORD = 'admin123';
+        const ADMIN_PASSWORD = 'Nekimegadom';
 
-        const MAX_SLOTS = 4;
+        // Settings with localStorage persistence
+        let MAX_SLOTS = parseInt(localStorage.getItem('pizza_max_slots')) || 4;
+        let TIME_SLOT_INTERVAL = parseInt(localStorage.getItem('pizza_time_interval')) || 10; // minutes
         
         // Track order statuses for change detection
         let previousOrderStatuses = {};
         
         // Auto-delete completed orders setting
-        let autoDeleteCompleted = false;
+        let autoDeleteCompleted = localStorage.getItem('pizza_auto_delete') === 'true' || false;
 
         // slotCounts: { "17:30": 2, "17:40": 4, ... }
         function generateTimeSlots(slotCounts = {}) {
@@ -1312,7 +1496,7 @@
             select.innerHTML = '<option value="">Válassz időpontot...</option>';
             const startTime = 17 * 60 + 30;
             const endTime = 20 * 60 + 30;
-            for (let time = startTime; time <= endTime; time += 10) {
+            for (let time = startTime; time <= endTime; time += TIME_SLOT_INTERVAL) {
                 const hours = Math.floor(time / 60);
                 const minutes = time % 60;
                 const timeString = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
@@ -1356,7 +1540,7 @@
                     slotCounts[t] = (slotCounts[t] || 0) + 1;
                 }
             }
-            for (let time = startTime; time <= endTime; time += 10) {
+            for (let time = startTime; time <= endTime; time += TIME_SLOT_INTERVAL) {
                 const hours = Math.floor(time / 60);
                 const minutes = time % 60;
                 const timeString = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
@@ -1554,6 +1738,12 @@
                     preparing: '<div class="order-status" style="color:#856404">🍳 Készülőben – kb. 10–15 perc!</div>',
                     completed: '<div class="order-status" style="color:#155724">✅ Kész – hamarosan átveheted!</div>'
                 }[status];
+                
+                const canEdit = canEditOrder(order.time, status);
+                const editButton = canEdit 
+                    ? `<button class="btn-edit" data-time="${order.time}" data-slot="${order.slotKey}"><span>✏️ Szerkesztés</span></button>`
+                    : `<button class="btn-edit" disabled style="opacity: 0.5; cursor: not-allowed;" title="Nem szerkeszthető (készülőben vagy 30 percen belül)"><span>✏️ Szerkesztés</span></button>`;
+                
                 return `
                     <div class="my-order-item${statusClass}" data-time="${order.time}" data-slot="${order.slotKey}">
                         <div class="my-order-badge">🍕 Saját rendelés</div>
@@ -1566,7 +1756,7 @@
                         </div>
                         ${statusMsg}
                         <div class="order-actions">
-                            <button class="btn-edit" data-time="${order.time}" data-slot="${order.slotKey}"><span>✏️ Szerkesztés</span></button>
+                            ${editButton}
                             <button class="btn-delete" data-time="${order.time}" data-slot="${order.slotKey}"><span>🗑️ Törlés</span></button>
                         </div>
                     </div>`;
@@ -1742,8 +1932,29 @@
         function nextStatusBtn(status, time, slotKey) {
             if (status === 'pending') return `<button class="btn-status to-preparing" data-time="${time}" data-slot="${slotKey}"><span>▶ Készülőben</span></button>`;
             if (status === 'preparing') return `<button class="btn-status to-completed" data-time="${time}" data-slot="${slotKey}"><span>✔ Kész</span></button>`;
-            if (status === 'completed') return `<button class="btn-status to-pending"   data-time="${time}" data-slot="${slotKey}"><span>↩ Visszaállít</span></button>`;
+            if (status === 'completed') return `<button class="btn-status to-picked-up" data-time="${time}" data-slot="${slotKey}"><span>👍 Átvéve</span></button>`;
         }
+        function canEditOrder(orderTime, orderStatus) {
+            // Cannot edit if preparing or completed
+            if (orderStatus === 'preparing' || orderStatus === 'completed') {
+                return false;
+            }
+            
+            // Cannot edit if less than 30 minutes before pickup time
+            const now = new Date();
+            const [hours, minutes] = orderTime.split(':').map(Number);
+            const pickupTime = new Date();
+            pickupTime.setHours(hours, minutes, 0, 0);
+            
+            const timeDiff = (pickupTime - now) / (1000 * 60); // difference in minutes
+            
+            if (timeDiff < 30) {
+                return false;
+            }
+            
+            return true;
+        }
+
         function getStatus(order) {
             // backwards-compat: old orders only had order.completed boolean
             if (order.status) return order.status;
@@ -1791,7 +2002,7 @@
                 if (!time || !slotKey) return;
                 if (statusBtn.classList.contains('to-preparing')) await cycleOrderStatus(time, slotKey, 'preparing');
                 else if (statusBtn.classList.contains('to-completed')) await cycleOrderStatus(time, slotKey, 'completed');
-                else if (statusBtn.classList.contains('to-pending')) await cycleOrderStatus(time, slotKey, 'pending');
+                else if (statusBtn.classList.contains('to-picked-up')) await pickUpOrder(time, slotKey);
                 return;
             }
 
@@ -1806,7 +2017,7 @@
             }
 
             const editBtn = e.target.closest('.btn-edit');
-            if (editBtn) {
+            if (editBtn && !editBtn.disabled) {
                 const time = editBtn.dataset.time;
                 const slotKey = editBtn.dataset.slot;
                 if (time && slotKey) await openEditModal(time, slotKey);
@@ -1824,24 +2035,43 @@
                     order.status = toStatus;
                     order.completed = (toStatus === 'completed');
                     
-                    // If status is completed and auto-delete is enabled, archive immediately
-                    if (toStatus === 'completed' && autoDeleteCompleted) {
-                        order.archived = true;
-                        order.archivedAt = Date.now();
-                        await set(orderRef, order);
-                        showToast('✅ Rendelés kész és automatikusan archiválva');
-                    } else {
-                        await set(orderRef, order);
-                        const msgs = {
-                            preparing: '🍳 Rendelés: Készülőben',
-                            completed: '✅ Rendelés: Kész',
-                            pending: '↩ Rendelés visszaállítva'
-                        };
-                        showToast(msgs[toStatus]);
-                    }
+                    await set(orderRef, order);
+                    const msgs = {
+                        preparing: '🍳 Rendelés: Készülőben',
+                        completed: '✅ Rendelés: Kész és átvehető',
+                        pending: '↩ Rendelés visszaállítva'
+                    };
+                    showToast(msgs[toStatus]);
                 }
             } catch (error) {
                 console.error('Error updating status:', error);
+                showToast('❌ Hiba történt');
+            }
+        }
+
+        async function pickUpOrder(time, slotKey) {
+            try {
+                const todayKey = getTodayKey();
+                const orderRef = ref(database, `orders/${todayKey}/${time}/${slotKey}`);
+                const snapshot = await get(orderRef);
+                if (snapshot.exists()) {
+                    const order = snapshot.val();
+                    
+                    // If auto-delete is enabled, archive the order
+                    if (autoDeleteCompleted) {
+                        order.archived = true;
+                        order.archivedAt = Date.now();
+                        await set(orderRef, order);
+                        showToast('👍 Rendelés átvéve és automatikusan archiválva');
+                    } else {
+                        order.archived = true;
+                        order.archivedAt = Date.now();
+                        await set(orderRef, order);
+                        showToast('👍 Rendelés átvéve és archiválva');
+                    }
+                }
+            } catch (error) {
+                console.error('Error marking as picked up:', error);
                 showToast('❌ Hiba történt');
             }
         }
@@ -2013,13 +2243,11 @@
             if (enable) {
                 document.body.classList.add('admin-mode');
                 document.getElementById('adminIndicator').classList.add('show');
-                document.getElementById('autoDeleteToggle').classList.add('show');
                 document.getElementById('adminToggle').textContent = '🔓';
                 showToast('🔐 Admin mód aktiválva');
             } else {
                 document.body.classList.remove('admin-mode');
                 document.getElementById('adminIndicator').classList.remove('show');
-                document.getElementById('autoDeleteToggle').classList.remove('show');
                 document.getElementById('adminToggle').textContent = '🔐';
                 showToast('👋 Admin mód kikapcsolva');
             }
@@ -2114,37 +2342,77 @@
                 showToast('❌ Hiba történt a módosítás során: ' + error.message);
             }
         });
-        document.getElementById('autoDeleteCheckbox').addEventListener('change', (e) => {
-            autoDeleteCompleted = e.target.checked;
-            if (autoDeleteCompleted) {
-                showToast('✅ Automatikus törlés bekapcsolva - a "Kész" rendelések automatikusan archiválódnak');
-            } else {
-                showToast('⏸️ Automatikus törlés kikapcsolva');
-            }
-        });
         document.getElementById('activeTab').addEventListener('click', () => {
             document.getElementById('activeTab').classList.add('active');
             document.getElementById('statisticsTab').classList.remove('active');
             document.getElementById('archiveTab').classList.remove('active');
+            document.getElementById('settingsTab').classList.remove('active');
             document.getElementById('ordersList').classList.add('active');
             document.getElementById('statisticsList').classList.remove('active');
             document.getElementById('archiveList').classList.remove('active');
+            document.getElementById('settingsList').classList.remove('active');
         });
         document.getElementById('statisticsTab').addEventListener('click', () => {
             document.getElementById('statisticsTab').classList.add('active');
             document.getElementById('activeTab').classList.remove('active');
             document.getElementById('archiveTab').classList.remove('active');
+            document.getElementById('settingsTab').classList.remove('active');
             document.getElementById('statisticsList').classList.add('active');
             document.getElementById('ordersList').classList.remove('active');
             document.getElementById('archiveList').classList.remove('active');
+            document.getElementById('settingsList').classList.remove('active');
         });
         document.getElementById('archiveTab').addEventListener('click', () => {
             document.getElementById('archiveTab').classList.add('active');
             document.getElementById('activeTab').classList.remove('active');
             document.getElementById('statisticsTab').classList.remove('active');
+            document.getElementById('settingsTab').classList.remove('active');
             document.getElementById('archiveList').classList.add('active');
             document.getElementById('ordersList').classList.remove('active');
             document.getElementById('statisticsList').classList.remove('active');
+            document.getElementById('settingsList').classList.remove('active');
+        });
+        document.getElementById('settingsTab').addEventListener('click', () => {
+            document.getElementById('settingsTab').classList.add('active');
+            document.getElementById('activeTab').classList.remove('active');
+            document.getElementById('statisticsTab').classList.remove('active');
+            document.getElementById('archiveTab').classList.remove('active');
+            document.getElementById('settingsList').classList.add('active');
+            document.getElementById('ordersList').classList.remove('active');
+            document.getElementById('statisticsList').classList.remove('active');
+            document.getElementById('archiveList').classList.remove('active');
+            
+            // Load current settings
+            document.getElementById('settingsAutoDelete').checked = autoDeleteCompleted;
+            document.getElementById('settingsTimeInterval').value = TIME_SLOT_INTERVAL;
+            document.getElementById('settingsMaxSlots').value = MAX_SLOTS;
+        });
+        document.getElementById('saveSettingsBtn').addEventListener('click', () => {
+            const newAutoDelete = document.getElementById('settingsAutoDelete').checked;
+            const newTimeInterval = parseInt(document.getElementById('settingsTimeInterval').value);
+            const newMaxSlots = parseInt(document.getElementById('settingsMaxSlots').value);
+            
+            // Validate inputs
+            if (newTimeInterval < 5 || newTimeInterval > 30) {
+                showToast('❌ Az időslot intervallum 5-30 perc között lehet');
+                return;
+            }
+            if (newMaxSlots < 1 || newMaxSlots > 10) {
+                showToast('❌ A max pizzák száma 1-10 között lehet');
+                return;
+            }
+            
+            // Save to localStorage
+            localStorage.setItem('pizza_auto_delete', newAutoDelete.toString());
+            localStorage.setItem('pizza_time_interval', newTimeInterval.toString());
+            localStorage.setItem('pizza_max_slots', newMaxSlots.toString());
+            
+            // Update variables
+            autoDeleteCompleted = newAutoDelete;
+            TIME_SLOT_INTERVAL = newTimeInterval;
+            MAX_SLOTS = newMaxSlots;
+            
+            showToast('✅ Beállítások mentve! Az időslot változás érvényesítéséhez frissítsd az oldalt.');
         });
         document.getElementById('pizzaForm').addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -2165,27 +2433,7 @@
                 showToast('✅ Rendelés sikeresen leadva!');
                 document.getElementById('pizzaForm').reset();
                 
-                // Optimistic UI update - display order immediately
-                const myList = document.getElementById('myOrdersList');
-                const extras = [orderData.extraTopping1, orderData.extraTopping2, orderData.extraTopping3]
-                    .filter(t => t && t !== '').join(', ');
-                myList.innerHTML = `
-                    <div class="my-order-item" data-time="${orderData.time}" data-slot="${slotKey}">
-                        <div class="my-order-badge">🍕 Saját rendelés</div>
-                        <div class="order-time">${orderData.time}</div>
-                        <div class="order-details">
-                            <strong>Név:</strong> ${orderData.name}<br>
-                            <strong>Alap feltét:</strong> ${orderData.baseTopping}
-                            ${extras ? '<br><strong>Plusz feltétek:</strong> ' + extras : ''}
-                            ${orderData.lactoseFree ? '<br><strong>Laktózmentes</strong>' : ''}
-                        </div>
-                        <div class="order-actions">
-                            <button class="btn-edit" data-time="${orderData.time}" data-slot="${slotKey}"><span>✏️ Szerkesztés</span></button>
-                            <button class="btn-delete" data-time="${orderData.time}" data-slot="${slotKey}"><span>🗑️ Törlés</span></button>
-                        </div>
-                    </div>`;
-                
-                // Set callback to scroll after Firebase update
+                // Set callback to scroll after Firebase update (Firebase will reload all orders)
                 pendingScrollCallback = () => {
                     document.getElementById('myOrdersSection').scrollIntoView({ 
                         behavior: 'smooth', 
