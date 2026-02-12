@@ -743,11 +743,13 @@
             background: #FFF5F0;
         }
 
-        #archiveList {
+        #archiveList,
+        #statisticsList {
             display: none;
         }
 
-        .admin-mode #archiveList.active {
+        .admin-mode #archiveList.active,
+        .admin-mode #statisticsList.active {
             display: block;
         }
 
@@ -757,6 +759,62 @@
 
         .admin-mode #ordersList:not(.active) {
             display: none;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #FFF9F0 0%, #FFF5E6 100%);
+            padding: 1.5rem;
+            border-radius: 12px;
+            border-left: 4px solid var(--accent);
+            box-shadow: 0 2px 8px var(--shadow);
+        }
+
+        .stat-card h3 {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 2.5rem;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-card p {
+            color: var(--dark);
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .ingredients-list {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+        }
+
+        .ingredient-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.8rem;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .ingredient-item:last-child {
+            border-bottom: none;
+        }
+
+        .ingredient-name {
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .ingredient-count {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.5rem;
+            color: var(--primary);
         }
 
         .archive-item {
@@ -902,6 +960,7 @@
                         <option value="sonka">Sonka</option>
                         <option value="szalámi">Szalámi</option>
                         <option value="tonhal">Tonhal</option>
+                        <option value="vegetáriánus">Vegetáriánus</option>
                     </select>
                 </div>
                 <div class="form-group">
@@ -913,8 +972,7 @@
                             <option value="kukorica">Kukorica</option>
                             <option value="hagyma">Hagyma</option>
                             <option value="olajbogyó">Olajbogyó</option>
-                            <option value="jalapeno">Jalapeno</option>
-                            <option value="pepperoni">Pepperoni</option>
+                            <option value="csípős">Csípős (Jalapeno/Pepperoni)</option>
                             <option value="mozzarella">Mozzarella</option>
                             <option value="rukkola">Rukkola</option>
                         </select>
@@ -924,8 +982,7 @@
                             <option value="kukorica">Kukorica</option>
                             <option value="hagyma">Hagyma</option>
                             <option value="olajbogyó">Olajbogyó</option>
-                            <option value="jalapeno">Jalapeno</option>
-                            <option value="pepperoni">Pepperoni</option>
+                            <option value="csípős">Csípős (Jalapeno/Pepperoni)</option>
                             <option value="mozzarella">Mozzarella</option>
                             <option value="rukkola">Rukkola</option>
                         </select>
@@ -935,8 +992,7 @@
                             <option value="kukorica">Kukorica</option>
                             <option value="hagyma">Hagyma</option>
                             <option value="olajbogyó">Olajbogyó</option>
-                            <option value="jalapeno">Jalapeno</option>
-                            <option value="pepperoni">Pepperoni</option>
+                            <option value="csípős">Csípős (Jalapeno/Pepperoni)</option>
                             <option value="mozzarella">Mozzarella</option>
                             <option value="rukkola">Rukkola</option>
                         </select>
@@ -956,10 +1012,16 @@
             <h2>Mai rendelések</h2>
             <div class="orders-tabs">
                 <button class="tab-button active" id="activeTab">Aktív rendelések</button>
+                <button class="tab-button" id="statisticsTab">Statisztika</button>
                 <button class="tab-button" id="archiveTab">Archív rendelések</button>
             </div>
             <div class="orders-list active" id="ordersList">
                 <div class="empty-state">Még nincsenek rendelések a mai napra.</div>
+            </div>
+            <div class="orders-list" id="statisticsList">
+                <div class="stats-grid" id="statsGrid"></div>
+                <h3 style="font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; color: var(--primary); margin-bottom: 1rem;">Összetevők szükséglet</h3>
+                <div class="ingredients-list" id="ingredientsList"></div>
             </div>
             <div class="orders-list" id="archiveList">
                 <div class="empty-state">Még nincsenek archivált rendelések.</div>
@@ -1008,6 +1070,7 @@
                         <option value="sonka">Sonka</option>
                         <option value="szalámi">Szalámi</option>
                         <option value="tonhal">Tonhal</option>
+                        <option value="vegetáriánus">Vegetáriánus</option>
                     </select>
                 </div>
                 <div class="form-group">
@@ -1019,8 +1082,7 @@
                             <option value="kukorica">Kukorica</option>
                             <option value="hagyma">Hagyma</option>
                             <option value="olajbogyó">Olajbogyó</option>
-                            <option value="jalapeno">Jalapeno</option>
-                            <option value="pepperoni">Pepperoni</option>
+                            <option value="csípős">Csípős (Jalapeno/Pepperoni)</option>
                             <option value="mozzarella">Mozzarella</option>
                             <option value="rukkola">Rukkola</option>
                         </select>
@@ -1030,8 +1092,7 @@
                             <option value="kukorica">Kukorica</option>
                             <option value="hagyma">Hagyma</option>
                             <option value="olajbogyó">Olajbogyó</option>
-                            <option value="jalapeno">Jalapeno</option>
-                            <option value="pepperoni">Pepperoni</option>
+                            <option value="csípős">Csípős (Jalapeno/Pepperoni)</option>
                             <option value="mozzarella">Mozzarella</option>
                             <option value="rukkola">Rukkola</option>
                         </select>
@@ -1041,8 +1102,7 @@
                             <option value="kukorica">Kukorica</option>
                             <option value="hagyma">Hagyma</option>
                             <option value="olajbogyó">Olajbogyó</option>
-                            <option value="jalapeno">Jalapeno</option>
-                            <option value="pepperoni">Pepperoni</option>
+                            <option value="csípős">Csípős (Jalapeno/Pepperoni)</option>
                             <option value="mozzarella">Mozzarella</option>
                             <option value="rukkola">Rukkola</option>
                         </select>
@@ -1135,12 +1195,20 @@
                 const timeString = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
                 const count = slotCounts[timeString] || 0;
                 const free = MAX_SLOTS - count;
-                if (free <= 0) continue; // skip full slots
+                
                 const option = document.createElement('option');
                 option.value = timeString;
-                option.textContent = timeString === currentTime
-                    ? `${timeString}  (jelenlegi)`
-                    : `${timeString}  (${free} hely szabad)`;
+                
+                if (timeString === currentTime) {
+                    // Always show current time as available
+                    option.textContent = `${timeString}  (jelenlegi)`;
+                } else if (free <= 0) {
+                    // Skip full slots (unless it's the current time)
+                    continue;
+                } else {
+                    option.textContent = `${timeString}  (${free} hely szabad)`;
+                }
+                
                 select.appendChild(option);
             }
         }
@@ -1165,6 +1233,38 @@
                         mozzarellaOption.style.display = '';
                     }
                 }
+            });
+        }
+
+        function filterMeatToppings(isVegetarian, prefix = '') {
+            // Disable meat toppings when vegetarian base is selected
+            const suffix = prefix === 'edit' ? 'ExtraTopping' : 'extraTopping';
+            const selects = [
+                document.getElementById(prefix + suffix + '1'),
+                document.getElementById(prefix + suffix + '2'),
+                document.getElementById(prefix + suffix + '3')
+            ].filter(Boolean);
+            
+            const meatToppings = ['csípős']; // Csípős contains pepperoni which is meat
+            
+            selects.forEach(select => {
+                meatToppings.forEach(meat => {
+                    const meatOption = Array.from(select.options).find(opt => opt.value === meat);
+                    if (meatOption) {
+                        if (isVegetarian) {
+                            if (select.value === meat) select.value = '';
+                            meatOption.disabled = true;
+                            meatOption.style.color = '#ccc';
+                            meatOption.textContent = meatOption.textContent.includes('🚫') 
+                                ? meatOption.textContent 
+                                : '🚫 ' + meatOption.textContent;
+                        } else {
+                            meatOption.disabled = false;
+                            meatOption.style.color = '';
+                            meatOption.textContent = meatOption.textContent.replace('🚫 ', '');
+                        }
+                    }
+                });
             });
         }
 
@@ -1300,6 +1400,7 @@
                     document.getElementById('ordersList').innerHTML = '<div class="empty-state">Még nincsenek rendelések a mai napra.</div>';
                     displayArchiveOrders([]);
                     displayMyOrders([]);
+                    displayStatistics([]);
                     return;
                 }
                 // New structure: orders/date/time/slotKey = orderObject
@@ -1330,6 +1431,7 @@
                 displayOrders(active);
                 displayArchiveOrders(archived);
                 displayMyOrders(allOrders);
+                displayStatistics(allOrders);
             });
         }
 
@@ -1359,6 +1461,68 @@
                         </div>
                     </div>`;
             }).join('');
+        }
+
+        function displayStatistics(allOrders) {
+            const activeOrders = allOrders.filter(o => !o.archived);
+            
+            // Count ingredients
+            const ingredients = {};
+            let totalOrders = activeOrders.length;
+            let lactoseFreeCount = 0;
+            
+            activeOrders.forEach(order => {
+                // Count base toppings
+                if (order.baseTopping) {
+                    ingredients[order.baseTopping] = (ingredients[order.baseTopping] || 0) + 1;
+                }
+                
+                // Count extra toppings
+                [order.extraTopping1, order.extraTopping2, order.extraTopping3].forEach(topping => {
+                    if (topping && topping !== '') {
+                        ingredients[topping] = (ingredients[topping] || 0) + 1;
+                    }
+                });
+                
+                // Count lactose-free
+                if (order.lactoseFree) {
+                    lactoseFreeCount++;
+                }
+            });
+            
+            // Display stats cards
+            const statsGrid = document.getElementById('statsGrid');
+            statsGrid.innerHTML = `
+                <div class="stat-card">
+                    <h3>${totalOrders}</h3>
+                    <p>Összes rendelés</p>
+                </div>
+                <div class="stat-card">
+                    <h3>${lactoseFreeCount}</h3>
+                    <p>Laktózmentes pizza</p>
+                </div>
+                <div class="stat-card">
+                    <h3>${totalOrders - lactoseFreeCount}</h3>
+                    <p>Normál pizza</p>
+                </div>
+            `;
+            
+            // Display ingredients list
+            const ingredientsList = document.getElementById('ingredientsList');
+            if (Object.keys(ingredients).length === 0) {
+                ingredientsList.innerHTML = '<div class="empty-state">Nincs adat</div>';
+                return;
+            }
+            
+            // Sort by count descending
+            const sortedIngredients = Object.entries(ingredients).sort((a, b) => b[1] - a[1]);
+            
+            ingredientsList.innerHTML = sortedIngredients.map(([name, count]) => `
+                <div class="ingredient-item">
+                    <span class="ingredient-name">${name.charAt(0).toUpperCase() + name.slice(1)}</span>
+                    <span class="ingredient-count">${count} adag</span>
+                </div>
+            `).join('');
         }
 
         // status helpers
@@ -1502,6 +1666,7 @@
                     await generateEditTimeSlots(time, slotKey);
                     document.getElementById('editTime').value = time;
                     filterMozzarella(order.lactoseFree, 'edit');
+                    filterMeatToppings(order.baseTopping === 'vegetáriánus', 'edit');
                     document.getElementById('editModal').classList.add('show');
                 }
             } catch (error) {
@@ -1632,6 +1797,12 @@
         document.getElementById('editLactoseFree').addEventListener('change', (e) => {
             filterMozzarella(e.target.checked, 'edit');
         });
+        document.getElementById('baseTopping').addEventListener('change', (e) => {
+            filterMeatToppings(e.target.value === 'vegetáriánus');
+        });
+        document.getElementById('editBaseTopping').addEventListener('change', (e) => {
+            filterMeatToppings(e.target.value === 'vegetáriánus', 'edit');
+        });
         document.getElementById('editForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const newTime = document.getElementById('editTime').value;
@@ -1683,15 +1854,27 @@
         });
         document.getElementById('activeTab').addEventListener('click', () => {
             document.getElementById('activeTab').classList.add('active');
+            document.getElementById('statisticsTab').classList.remove('active');
             document.getElementById('archiveTab').classList.remove('active');
             document.getElementById('ordersList').classList.add('active');
+            document.getElementById('statisticsList').classList.remove('active');
+            document.getElementById('archiveList').classList.remove('active');
+        });
+        document.getElementById('statisticsTab').addEventListener('click', () => {
+            document.getElementById('statisticsTab').classList.add('active');
+            document.getElementById('activeTab').classList.remove('active');
+            document.getElementById('archiveTab').classList.remove('active');
+            document.getElementById('statisticsList').classList.add('active');
+            document.getElementById('ordersList').classList.remove('active');
             document.getElementById('archiveList').classList.remove('active');
         });
         document.getElementById('archiveTab').addEventListener('click', () => {
             document.getElementById('archiveTab').classList.add('active');
             document.getElementById('activeTab').classList.remove('active');
+            document.getElementById('statisticsTab').classList.remove('active');
             document.getElementById('archiveList').classList.add('active');
             document.getElementById('ordersList').classList.remove('active');
+            document.getElementById('statisticsList').classList.remove('active');
         });
         document.getElementById('pizzaForm').addEventListener('submit', async (e) => {
             e.preventDefault();
