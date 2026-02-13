@@ -49,8 +49,80 @@ const DEFAULT_EXTRA_TOPPINGS = [
     { id: 'rukkola', name: 'Rukkola', enabled: true }
 ];
 
-let baseToppings = JSON.parse(localStorage.getItem('pizza_base_toppings')) || DEFAULT_BASE_TOPPINGS;
-let extraToppings = JSON.parse(localStorage.getItem('pizza_extra_toppings')) || DEFAULT_EXTRA_TOPPINGS;
+let baseToppings = [];
+let extraToppings = [];
+
+// Load toppings from Firebase
+async function loadToppings() {
+    try {
+        const baseToppingsRef = ref(database, 'toppings/base');
+        const extraToppingsRef = ref(database, 'toppings/extra');
+        
+        const [baseSnapshot, extraSnapshot] = await Promise.all([
+            get(baseToppingsRef),
+            get(extraToppingsRef)
+        ]);
+        
+        if (baseSnapshot.exists()) {
+            baseToppings = baseSnapshot.val();
+        } else {
+            baseToppings = DEFAULT_BASE_TOPPINGS;
+            await set(baseToppingsRef, baseToppings);
+        }
+        
+        if (extraSnapshot.exists()) {
+            extraToppings = extraSnapshot.val();
+        } else {
+            extraToppings = DEFAULT_EXTRA_TOPPINGS;
+            await set(extraToppingsRef, extraToppings);
+        }
+        
+        updateFormSelects();
+    } catch (error) {
+        console.error('Error loading toppings:', error);
+        baseToppings = DEFAULT_BASE_TOPPINGS;
+        extraToppings = DEFAULT_EXTRA_TOPPINGS;
+        updateFormSelects();
+    }
+}
+
+// Watch for toppings changes in real-time
+function watchToppings() {
+    const baseToppingsRef = ref(database, 'toppings/base');
+    const extraToppingsRef = ref(database, 'toppings/extra');
+    
+    onValue(baseToppingsRef, (snapshot) => {
+        if (snapshot.exists()) {
+            baseToppings = snapshot.val();
+            updateFormSelects();
+            renderToppingsManager();
+        }
+    });
+    
+    onValue(extraToppingsRef, (snapshot) => {
+        if (snapshot.exists()) {
+            extraToppings = snapshot.val();
+            updateFormSelects();
+            renderToppingsManager();
+        }
+    });
+}
+
+// Save toppings to Firebase
+async function saveToppingsConfig() {
+    try {
+        const baseToppingsRef = ref(database, 'toppings/base');
+        const extraToppingsRef = ref(database, 'toppings/extra');
+        
+        await Promise.all([
+            set(baseToppingsRef, baseToppings),
+            set(extraToppingsRef, extraToppings)
+        ]);
+    } catch (error) {
+        console.error('Error saving toppings:', error);
+        showToast('❌ Hiba történt a feltétek mentésekor');
+    }
+}
 
 // Load settings from Firebase
 async function loadSettings() {
@@ -294,11 +366,6 @@ function updateCountdown() {
     document.getElementById('hoursLeft').textContent = String(hours).padStart(2, '0');
     document.getElementById('minutesLeft').textContent = String(minutes).padStart(2, '0');
     document.getElementById('secondsLeft').textContent = String(seconds).padStart(2, '0');
-}
-
-function saveToppingsConfig() {
-    localStorage.setItem('pizza_base_toppings', JSON.stringify(baseToppings));
-    localStorage.setItem('pizza_extra_toppings', JSON.stringify(extraToppings));
 }
 
 function renderToppingsManager() {
@@ -866,15 +933,13 @@ function displayArchiveOrders(orders) {
 
 function displayStatistics(allOrders) {
     // Active orders: pending + preparing (not yet completed)
-    // MÓDOSÍTVA: Most csak a pending és preparing státuszúakat számolja
     const activeOrders = allOrders.filter(o => {
-        if (o.archived) return false;  // Archivált rendelések nem aktívak
+        if (o.archived) return false;
         const status = getStatus(o);
-        return status === 'pending' || status === 'preparing';  // Csak ezek az aktívak
+        return status === 'pending' || status === 'preparing';
     });
     
     // Completed orders: completed status OR archived orders that were completed
-    // Ez továbbra is tartalmazza az összes elkészült pizzát (beleértve az archiváltakat)
     const completedOrders = allOrders.filter(o => {
         const status = getStatus(o);
         return status === 'completed' || (o.archived && o.completed);
@@ -1122,6 +1187,11 @@ function getLastOrder() {
 }
 
 function showReorderPrompt() {
+    // Don't show reorder prompt if countdown is active
+    if (!checkPreOrderTime()) {
+        return;
+    }
+    
     const lastOrder = getLastOrder();
     if (!lastOrder) return;
 
@@ -1594,13 +1664,12 @@ document.getElementById('pizzaForm').addEventListener('submit', async (e) => {
         document.getElementById('pizzaForm').reset();
         updateQuantityOptions();
 
-        // Scroll to my orders section immediately
-        setTimeout(() => {
-            document.getElementById('myOrdersSection').scrollIntoView({
-                behavior: 'smooth',
-                block: 'start'
-            });
-        }, 300);
+        // Scroll to my orders section immediately - no timeout needed
+        // The real-time Firebase listener will update the display
+        document.getElementById('myOrdersSection').scrollIntoView({
+            behavior: 'smooth',
+            block: 'start'
+        });
     }
 });
 document.getElementById('time').addEventListener('change', (e) => {
@@ -1612,10 +1681,17 @@ loadOrders();
 updateQuantityOptions();
 updateFormSelects();
 
+// Load toppings and settings from Firebase
+loadToppings().then(() => {
+    updateFormSelects();
+});
+
 // Load settings from Firebase first
 loadSettings().then(() => {
     // Watch for settings changes in real-time
     watchSettings();
+    // Watch for toppings changes
+    watchToppings();
     // Watch for logo changes
     watchLogo();
     // Load logo
