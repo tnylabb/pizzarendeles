@@ -98,8 +98,15 @@ function watchSettings() {
             PRE_ORDER_MINUTE = settings.preOrderMinute || 0;
             autoDeleteCompleted = settings.autoDelete || false;
             
+            // Mark settings as loaded
+            settingsLoaded = true;
+            
             // If pre-order time changed, update countdown
             if (oldPreOrderHour !== PRE_ORDER_HOUR || oldPreOrderMinute !== PRE_ORDER_MINUTE) {
+                console.log('Pre-order time changed, updating countdown...', {
+                    old: `${oldPreOrderHour}:${String(oldPreOrderMinute).padStart(2, '0')}`,
+                    new: `${PRE_ORDER_HOUR}:${String(PRE_ORDER_MINUTE).padStart(2, '0')}`
+                });
                 checkPreOrderTime();
             }
         }
@@ -217,6 +224,11 @@ function watchLogo() {
 let countdownInterval = null;
 
 function checkPreOrderTime() {
+    // Don't check until settings are loaded
+    if (!settingsLoaded) {
+        return false;
+    }
+    
     const now = new Date();
     const currentMinutes = now.getHours() * 60 + now.getMinutes();
     const preOrderMinutes = PRE_ORDER_HOUR * 60 + PRE_ORDER_MINUTE;
@@ -268,6 +280,7 @@ function updateCountdown() {
     
     // If pre-order time has passed today, it means we should show the form
     if (now >= today) {
+        console.log('Pre-order time reached, hiding countdown');
         hideCountdown();
         checkPreOrderTime(); // This will hide the overlay if we're past pre-order time
         return;
@@ -852,28 +865,33 @@ function displayArchiveOrders(orders) {
 }
 
 function displayStatistics(allOrders) {
-    const activeOrders = allOrders.filter(o => !o.archived);
-    const preparingOrders = activeOrders.filter(o => getStatus(o) === 'preparing');
-    const completedOrders = activeOrders.filter(o => getStatus(o) === 'completed');
+    // Pending + Preparing orders (not yet completed)
+    const activeOrders = allOrders.filter(o => !o.archived && getStatus(o) !== 'completed');
+    
+    // Completed orders (including archived ones that were completed)
+    const completedOrders = allOrders.filter(o => {
+        const status = getStatus(o);
+        return status === 'completed' || (o.archived && o.completed);
+    });
 
-    // Készülőben lévő rendelések alapanyagai
-    const preparingIngredients = {};
-    let totalPreparing = preparingOrders.length;
-    let preparingLactoseFree = 0;
+    // Active orders ingredients (pending + preparing)
+    const activeIngredients = {};
+    let totalActive = activeOrders.length;
+    let activeLactoseFree = 0;
 
-    preparingOrders.forEach(order => {
+    activeOrders.forEach(order => {
         if (order.baseTopping) {
-            preparingIngredients[order.baseTopping] = (preparingIngredients[order.baseTopping] || 0) + 1;
+            activeIngredients[order.baseTopping] = (activeIngredients[order.baseTopping] || 0) + 1;
         }
         [order.extraTopping1, order.extraTopping2, order.extraTopping3].forEach(topping => {
             if (topping && topping !== '') {
-                preparingIngredients[topping] = (preparingIngredients[topping] || 0) + 1;
+                activeIngredients[topping] = (activeIngredients[topping] || 0) + 1;
             }
         });
-        if (order.lactoseFree) preparingLactoseFree++;
+        if (order.lactoseFree) activeLactoseFree++;
     });
 
-    // Elkészült rendelések alapanyagai
+    // Completed orders ingredients (including archived)
     const completedIngredients = {};
     let totalCompleted = completedOrders.length;
     let completedLactoseFree = 0;
@@ -894,47 +912,47 @@ function displayStatistics(allOrders) {
     const statsGrid = document.getElementById('statsGrid');
     statsGrid.innerHTML = `
         <div class="stat-card" style="border-left-color: #FFC107;">
-            <h3 style="color: #FFC107;">${totalPreparing}</h3>
-            <p>🍳 Készülőben</p>
+            <h3 style="color: #FFC107;">${totalActive}</h3>
+            <p>🍕 Készítésre vár / Készülőben</p>
         </div>
         <div class="stat-card" style="border-left-color: #4CAF50;">
             <h3 style="color: #4CAF50;">${totalCompleted}</h3>
-            <p>✅ Elkészült (átvehető)</p>
+            <p>✅ Elkészült (mai nap összes)</p>
         </div>
         <div class="stat-card" style="border-left-color: #FFC107;">
-            <h3 style="color: #FFC107;">${preparingLactoseFree}</h3>
-            <p>🍳 Laktózmentes (készülőben)</p>
+            <h3 style="color: #FFC107;">${activeLactoseFree}</h3>
+            <p>🍕 Laktózmentes (aktív)</p>
         </div>
         <div class="stat-card" style="border-left-color: #4CAF50;">
             <h3 style="color: #4CAF50;">${completedLactoseFree}</h3>
-            <p>✅ Laktózmentes (kész)</p>
+            <p>✅ Laktózmentes (elkészült)</p>
         </div>
     `;
 
     // Ingredients list - két oszlop
     const ingredientsList = document.getElementById('ingredientsList');
 
-    const sortedPreparing = Object.entries(preparingIngredients).sort((a, b) => b[1] - a[1]);
+    const sortedActive = Object.entries(activeIngredients).sort((a, b) => b[1] - a[1]);
     const sortedCompleted = Object.entries(completedIngredients).sort((a, b) => b[1] - a[1]);
 
     ingredientsList.innerHTML = `
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
             <div>
                 <h4 style="font-family: 'Bebas Neue', sans-serif; font-size: 1.5rem; color: #FFC107; margin-bottom: 1rem; text-align: center;">
-                    🍳 Készülő pizzák alapanyagai
+                    🍕 Aktív rendelések alapanyagai
                 </h4>
                 <div style="background: #FFFDF0; padding: 1rem; border-radius: 8px; border: 2px solid #FFC107;">
-                    ${sortedPreparing.length > 0 ? sortedPreparing.map(([id, count]) => `
+                    ${sortedActive.length > 0 ? sortedActive.map(([id, count]) => `
                         <div class="ingredient-item">
                             <span class="ingredient-name">${getToppingName(id)}</span>
                             <span class="ingredient-count" style="color: #FFC107;">${count} adag</span>
                         </div>
-                    `).join('') : '<div class="empty-state">Még nincs készülő pizza</div>'}
+                    `).join('') : '<div class="empty-state">Nincs aktív rendelés</div>'}
                 </div>
             </div>
             <div>
                 <h4 style="font-family: 'Bebas Neue', sans-serif; font-size: 1.5rem; color: #4CAF50; margin-bottom: 1rem; text-align: center;">
-                    ✅ Elkészült pizzák alapanyagai
+                    ✅ Elkészült pizzák alapanyagai (mai nap)
                 </h4>
                 <div style="background: #F1F8F4; padding: 1rem; border-radius: 8px; border: 2px solid #4CAF50;">
                     ${sortedCompleted.length > 0 ? sortedCompleted.map(([id, count]) => `
