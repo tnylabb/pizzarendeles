@@ -51,6 +51,7 @@ const DEFAULT_EXTRA_TOPPINGS = [
 
 let baseToppings = [];
 let extraToppings = [];
+let toppingsLoaded = false;
 
 // Load toppings from Firebase
 async function loadToppings() {
@@ -77,11 +78,13 @@ async function loadToppings() {
             await set(extraToppingsRef, extraToppings);
         }
         
+        toppingsLoaded = true;
         updateFormSelects();
     } catch (error) {
         console.error('Error loading toppings:', error);
         baseToppings = DEFAULT_BASE_TOPPINGS;
         extraToppings = DEFAULT_EXTRA_TOPPINGS;
+        toppingsLoaded = true;
         updateFormSelects();
     }
 }
@@ -94,16 +97,20 @@ function watchToppings() {
     onValue(baseToppingsRef, (snapshot) => {
         if (snapshot.exists()) {
             baseToppings = snapshot.val();
-            updateFormSelects();
-            renderToppingsManager();
+            if (toppingsLoaded) {
+                updateFormSelects();
+                renderToppingsManager();
+            }
         }
     });
     
     onValue(extraToppingsRef, (snapshot) => {
         if (snapshot.exists()) {
             extraToppings = snapshot.val();
-            updateFormSelects();
-            renderToppingsManager();
+            if (toppingsLoaded) {
+                updateFormSelects();
+                renderToppingsManager();
+            }
         }
     });
 }
@@ -118,6 +125,8 @@ async function saveToppingsConfig() {
             set(baseToppingsRef, baseToppings),
             set(extraToppingsRef, extraToppings)
         ]);
+        
+        showToast('✅ Feltétek mentve és szinkronizálva!');
     } catch (error) {
         console.error('Error saving toppings:', error);
         showToast('❌ Hiba történt a feltétek mentésekor');
@@ -175,10 +184,6 @@ function watchSettings() {
             
             // If pre-order time changed, update countdown
             if (oldPreOrderHour !== PRE_ORDER_HOUR || oldPreOrderMinute !== PRE_ORDER_MINUTE) {
-                console.log('Pre-order time changed, updating countdown...', {
-                    old: `${oldPreOrderHour}:${String(oldPreOrderMinute).padStart(2, '0')}`,
-                    new: `${PRE_ORDER_HOUR}:${String(PRE_ORDER_MINUTE).padStart(2, '0')}`
-                });
                 checkPreOrderTime();
             }
         }
@@ -244,14 +249,12 @@ async function loadLogo() {
 
 function displayLogo(dataUrl) {
     const logoImage = document.getElementById('logoImage');
-    const logoPlaceholder = document.getElementById('logoPlaceholder');
     const logoPreview = document.getElementById('logoPreview');
     const logoPreviewImage = document.getElementById('logoPreviewImage');
     
     if (dataUrl) {
         logoImage.src = dataUrl;
         logoImage.style.display = 'block';
-        logoPlaceholder.style.display = 'none';
         
         if (logoPreview && logoPreviewImage) {
             logoPreviewImage.src = dataUrl;
@@ -259,7 +262,6 @@ function displayLogo(dataUrl) {
         }
     } else {
         logoImage.style.display = 'none';
-        logoPlaceholder.style.display = 'flex';
         
         if (logoPreview) {
             logoPreview.style.display = 'none';
@@ -352,9 +354,8 @@ function updateCountdown() {
     
     // If pre-order time has passed today, it means we should show the form
     if (now >= today) {
-        console.log('Pre-order time reached, hiding countdown');
         hideCountdown();
-        checkPreOrderTime(); // This will hide the overlay if we're past pre-order time
+        checkPreOrderTime();
         return;
     }
     
@@ -1163,76 +1164,6 @@ async function cycleOrderStatus(time, slotKey, toStatus) {
     }
 }
 
-function saveLastOrder(orderData) {
-    const lastOrder = {
-        name: orderData.name,
-        lactoseFree: orderData.lactoseFree,
-        baseTopping: orderData.baseTopping,
-        extraTopping1: orderData.extraTopping1,
-        extraTopping2: orderData.extraTopping2,
-        extraTopping3: orderData.extraTopping3,
-        timestamp: Date.now()
-    };
-    setCookie('pizza_last_order', JSON.stringify(lastOrder), 30);
-}
-
-function getLastOrder() {
-    const lastOrderStr = getCookie('pizza_last_order');
-    if (!lastOrderStr) return null;
-    try {
-        return JSON.parse(lastOrderStr);
-    } catch (e) {
-        return null;
-    }
-}
-
-function showReorderPrompt() {
-    // Don't show reorder prompt if countdown is active
-    if (!checkPreOrderTime()) {
-        return;
-    }
-    
-    const lastOrder = getLastOrder();
-    if (!lastOrder) return;
-
-    if (document.getElementById('name').value || document.getElementById('baseTopping').value) {
-        return;
-    }
-
-    if (isAdminMode) return;
-
-    const extras = [lastOrder.extraTopping1, lastOrder.extraTopping2, lastOrder.extraTopping3]
-        .filter(t => t && t !== '')
-        .map(id => getToppingName(id))
-        .join(', ');
-
-    const baseName = getToppingName(lastOrder.baseTopping);
-
-    const message = `🍕 Üdvözlünk vissza!\n\nElőző rendelésed:\n${baseName}${extras ? ' + ' + extras : ''}${lastOrder.lactoseFree ? ' (Laktózmentes)' : ''}\n\nSzeretnéd újra rendelni ugyanezt?`;
-
-    if (confirm(message)) {
-        fillFormWithLastOrder(lastOrder);
-        showToast('✅ Előző rendelés betöltve! Válassz időpontot és darabszámot.');
-
-        setTimeout(() => {
-            document.getElementById('time').scrollIntoView({ behavior: 'smooth', block: 'center' });
-            document.getElementById('time').focus();
-        }, 500);
-    }
-}
-
-function fillFormWithLastOrder(order) {
-    document.getElementById('name').value = order.name || '';
-    document.getElementById('lactoseFree').checked = order.lactoseFree || false;
-    document.getElementById('baseTopping').value = order.baseTopping || '';
-    document.getElementById('extraTopping1').value = order.extraTopping1 || '';
-    document.getElementById('extraTopping2').value = order.extraTopping2 || '';
-    document.getElementById('extraTopping3').value = order.extraTopping3 || '';
-
-    filterMozzarella(order.lactoseFree || false);
-    filterMeatToppings(order.baseTopping === 'vegetarianus');
-}
-
 async function pickUpOrder(time, slotKey) {
     try {
         const todayKey = getTodayKey();
@@ -1240,18 +1171,10 @@ async function pickUpOrder(time, slotKey) {
         const snapshot = await get(orderRef);
         if (snapshot.exists()) {
             const order = snapshot.val();
-
-            if (autoDeleteCompleted) {
-                order.archived = true;
-                order.archivedAt = Date.now();
-                await set(orderRef, order);
-                showToast('👍 Rendelés átvéve és automatikusan archiválva');
-            } else {
-                order.archived = true;
-                order.archivedAt = Date.now();
-                await set(orderRef, order);
-                showToast('👍 Rendelés átvéve és archiválva');
-            }
+            order.archived = true;
+            order.archivedAt = Date.now();
+            await set(orderRef, order);
+            showToast('👍 Rendelés átvéve és archiválva');
         }
     } catch (error) {
         console.error('Error marking as picked up:', error);
@@ -1411,13 +1334,13 @@ function toggleAdminMode(enable) {
         document.getElementById('adminIndicator').classList.add('show');
         document.getElementById('adminToggle').textContent = '🔓';
         showToast('🔐 Admin mód aktiválva');
-        hideCountdown(); // Admin always sees the page
+        hideCountdown();
     } else {
         document.body.classList.remove('admin-mode');
         document.getElementById('adminIndicator').classList.remove('show');
         document.getElementById('adminToggle').textContent = '🔐';
         showToast('👋 Admin mód kikapcsolva');
-        checkPreOrderTime(); // Check if countdown should show
+        checkPreOrderTime();
     }
 }
 
@@ -1481,8 +1404,6 @@ document.getElementById('editForm').addEventListener('submit', async (e) => {
             completed: (wasStatus === 'completed'),
             timestamp: Date.now()
         };
-
-        saveLastOrder(orderData);
 
         if (editingOrderOriginalTime !== newTime) {
             await set(oldRef, { ...oldSnapshot.val(), archived: true, archivedAt: Date.now() });
@@ -1640,8 +1561,6 @@ document.getElementById('pizzaForm').addEventListener('submit', async (e) => {
         timestamp: Date.now()
     };
 
-    saveLastOrder(orderData);
-
     let successCount = 0;
     const savedSlots = [];
 
@@ -1664,8 +1583,7 @@ document.getElementById('pizzaForm').addEventListener('submit', async (e) => {
         document.getElementById('pizzaForm').reset();
         updateQuantityOptions();
 
-        // Scroll to my orders section immediately - no timeout needed
-        // The real-time Firebase listener will update the display
+        // Scroll to my orders section
         document.getElementById('myOrdersSection').scrollIntoView({
             behavior: 'smooth',
             block: 'start'
@@ -1679,7 +1597,6 @@ document.getElementById('time').addEventListener('change', (e) => {
 generateTimeSlots();
 loadOrders();
 updateQuantityOptions();
-updateFormSelects();
 
 // Load toppings and settings from Firebase
 loadToppings().then(() => {
@@ -1700,12 +1617,6 @@ loadSettings().then(() => {
 
 // Check every minute if countdown should appear/disappear
 setInterval(checkPreOrderTime, 60000);
-
-setTimeout(() => {
-    if (!isAdminMode) {
-        showReorderPrompt();
-    }
-}, 1500);
 
 // Logo upload button - wrapped in try-catch with proper element checking
 document.addEventListener('DOMContentLoaded', () => {
