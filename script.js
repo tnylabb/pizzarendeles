@@ -865,10 +865,16 @@ function displayArchiveOrders(orders) {
 }
 
 function displayStatistics(allOrders) {
-    // Pending + Preparing orders (not yet completed)
-    const activeOrders = allOrders.filter(o => !o.archived && getStatus(o) !== 'completed');
+    // Active orders: pending + preparing (not yet completed)
+    // MÓDOSÍTVA: Most csak a pending és preparing státuszúakat számolja
+    const activeOrders = allOrders.filter(o => {
+        if (o.archived) return false;  // Archivált rendelések nem aktívak
+        const status = getStatus(o);
+        return status === 'pending' || status === 'preparing';  // Csak ezek az aktívak
+    });
     
-    // Completed orders (including archived ones that were completed)
+    // Completed orders: completed status OR archived orders that were completed
+    // Ez továbbra is tartalmazza az összes elkészült pizzát (beleértve az archiváltakat)
     const completedOrders = allOrders.filter(o => {
         const status = getStatus(o);
         return status === 'completed' || (o.archived && o.completed);
