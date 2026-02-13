@@ -31,8 +31,8 @@ let previousOrderStatuses = {};
 let autoDeleteCompleted = false;
 let settingsLoaded = false;
 
-// Cache for all orders - used for immediate display after submission
-let cachedAllOrders = [];
+// Flag to scroll to my orders after Firebase onValue updates
+let pendingScrollToMyOrders = false;
 
 const DEFAULT_BASE_TOPPINGS = [
     { id: 'sonka', name: 'Sonka', enabled: true },
@@ -706,6 +706,33 @@ function filterMozzarella(isLactoseFree, prefix = '') {
             }
         }
     });
+    // Margherita alap feltét is tiltva laktózmentes esetén
+    filterLactoseFreeBaseToppings(isLactoseFree, prefix);
+}
+
+// Laktózmentes esetén a margherita alap feltétet is tiltjuk (sajtot tartalmaz)
+function filterLactoseFreeBaseToppings(isLactoseFree, prefix = '') {
+    const baseSelectId = prefix === 'edit' ? 'editBaseTopping' : 'baseTopping';
+    const baseSelect = document.getElementById(baseSelectId);
+    if (!baseSelect) return;
+
+    // Laktózt tartalmazó alap feltétek ID-i
+    const dairyBaseToppings = ['margherita'];
+
+    dairyBaseToppings.forEach(id => {
+        const opt = Array.from(baseSelect.options).find(o => o.value === id);
+        if (!opt) return;
+        if (isLactoseFree) {
+            if (baseSelect.value === id) baseSelect.value = '';
+            opt.disabled = true;
+            opt.style.color = '#ccc';
+            if (!opt.textContent.includes('🚫')) opt.textContent = '🚫 ' + opt.textContent;
+        } else {
+            opt.disabled = false;
+            opt.style.color = '';
+            opt.textContent = opt.textContent.replace('🚫 ', '');
+        }
+    });
 }
 
 function filterMeatToppings(isVegetarian, prefix = '') {
@@ -888,7 +915,6 @@ function loadOrders() {
     onValue(ordersRef, (snapshot) => {
         const data = snapshot.val();
         if (!data) {
-            cachedAllOrders = [];
             generateTimeSlots([]);
             document.getElementById('ordersList').innerHTML = '<div class="empty-state">Még nincsenek rendelések a mai napra.</div>';
             displayArchiveOrders([]);
@@ -907,9 +933,6 @@ function loadOrders() {
             }
         }
 
-        // Update cache
-        cachedAllOrders = allOrders;
-
         const active = allOrders.filter(o => !o.archived);
         const archived = allOrders.filter(o => o.archived);
         active.sort((a, b) => a.time.localeCompare(b.time) || a.slotKey.localeCompare(b.slotKey));
@@ -925,6 +948,15 @@ function loadOrders() {
         displayArchiveOrders(archived);
         displayMyOrders(allOrders);
         displayStatistics(allOrders);
+
+        // Ha rendelés után vár a scroll, most hajtjuk végre (Firebase már visszaigazolta)
+        if (pendingScrollToMyOrders) {
+            pendingScrollToMyOrders = false;
+            document.getElementById('myOrdersSection').scrollIntoView({
+                behavior: 'smooth',
+                block: 'start'
+            });
+        }
     });
 }
 
@@ -1596,10 +1628,6 @@ document.getElementById('pizzaForm').addEventListener('submit', async (e) => {
             saveMyOrderToCookie(orderData.time, slotKey);
             savedSlots.push(slotKey);
             successCount++;
-
-            // --- FIX: Azonnal hozzáadjuk a cachedAllOrders-hez és frissítjük a UI-t ---
-            const newOrder = { ...orderData, slotKey, time: orderData.time };
-            cachedAllOrders.push(newOrder);
         } else {
             break;
         }
@@ -1611,17 +1639,11 @@ document.getElementById('pizzaForm').addEventListener('submit', async (e) => {
             : `✅ ${successCount} rendelés sikeresen leadva!`;
         showToast(msg);
 
-        // Azonnal frissítjük a "Saját rendelésem" szekciót a cache alapján
-        displayMyOrders(cachedAllOrders);
-
         document.getElementById('pizzaForm').reset();
         updateQuantityOptions();
 
-        // Scroll to my orders section
-        document.getElementById('myOrdersSection').scrollIntoView({
-            behavior: 'smooth',
-            block: 'start'
-        });
+        // Flag: az onValue callback fogja elvégezni a scrollt, amikor Firebase visszaigazolja
+        pendingScrollToMyOrders = true;
     }
 });
 
