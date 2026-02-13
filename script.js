@@ -1330,23 +1330,34 @@ function closeEditModal() {
     editingOrderSlotKey = null;
 }
 
+// In-memory slot tracker for the current submit session (resets each submit)
+// Prevents multiple orders in same session from picking the same slot
+const _pendingSlots = {};
+
 async function saveOrder(orderData) {
     try {
         const todayKey = getTodayKey();
-        const timeRef = ref(database, `orders/${todayKey}/${orderData.time}`);
+        const timeKey = orderData.time;
+        const timeRef = ref(database, `orders/${todayKey}/${timeKey}`);
         const snapshot = await get(timeRef);
         const existing = snapshot.exists() ? snapshot.val() : {};
+
+        // Merge already-pending (in-session) slots so we don't double-book
+        const pending = _pendingSlots[timeKey] || [];
 
         let slotKey = null;
         let activeCount = 0;
 
         for (let i = 1; i <= MAX_SLOTS; i++) {
             const key = `slot_${i}`;
-            if (!existing[key]) {
+            const isPending = pending.includes(key);
+            if (!existing[key] && !isPending) {
                 if (!slotKey) slotKey = key;
-            } else if (existing[key].archived) {
+            } else if (existing[key] && existing[key].archived && !isPending) {
                 if (!slotKey) slotKey = key;
-            } else {
+            } else if (!isPending && existing[key] && !existing[key].archived) {
+                activeCount++;
+            } else if (isPending) {
                 activeCount++;
             }
         }
@@ -1361,7 +1372,11 @@ async function saveOrder(orderData) {
             return false;
         }
 
-        const slotRef = ref(database, `orders/${todayKey}/${orderData.time}/${slotKey}`);
+        // Reserve this slot in-session immediately
+        if (!_pendingSlots[timeKey]) _pendingSlots[timeKey] = [];
+        _pendingSlots[timeKey].push(slotKey);
+
+        const slotRef = ref(database, `orders/${todayKey}/${timeKey}/${slotKey}`);
         await set(slotRef, { ...orderData, slotKey });
         return slotKey;
     } catch (error) {
@@ -1622,6 +1637,9 @@ document.getElementById('pizzaForm').addEventListener('submit', async (e) => {
     let successCount = 0;
     const savedSlots = [];
 
+    // Reset in-session slot tracker for this new submission
+    for (const key in _pendingSlots) delete _pendingSlots[key];
+
     for (let i = 0; i < quantity; i++) {
         const slotKey = await saveOrder(orderData);
         if (slotKey) {
@@ -1642,8 +1660,33 @@ document.getElementById('pizzaForm').addEventListener('submit', async (e) => {
         document.getElementById('pizzaForm').reset();
         updateQuantityOptions();
 
-        // Flag: az onValue callback fogja elvégezni a scrollt, amikor Firebase visszaigazolja
-        pendingScrollToMyOrders = true;
+        // Azonnal olvassuk vissza a friss adatot Firebase-ből és rendereljük
+        try {
+            const todayKey = getTodayKey();
+            const freshSnapshot = await get(ref(database, `orders/${todayKey}`));
+            if (freshSnapshot.exists()) {
+                const data = freshSnapshot.val();
+                const allOrders = [];
+                for (const [time, slots] of Object.entries(data)) {
+                    if (slots && typeof slots === 'object') {
+                        for (const [slotKey, order] of Object.entries(slots)) {
+                            if (order && typeof order === 'object') {
+                                allOrders.push({ time, slotKey, ...order });
+                            }
+                        }
+                    }
+                }
+                displayMyOrders(allOrders);
+            }
+        } catch (err) {
+            console.error('Error fetching fresh orders:', err);
+        }
+
+        // Scroll a saját rendelések szekcióhoz
+        document.getElementById('myOrdersSection').scrollIntoView({
+            behavior: 'smooth',
+            block: 'start'
+        });
     }
 });
 
