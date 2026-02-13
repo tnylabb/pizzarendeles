@@ -31,6 +31,9 @@ let previousOrderStatuses = {};
 let autoDeleteCompleted = false;
 let settingsLoaded = false;
 
+// Cache for all orders - used for immediate display after submission
+let cachedAllOrders = [];
+
 const DEFAULT_BASE_TOPPINGS = [
     { id: 'sonka', name: 'Sonka', enabled: true },
     { id: 'szalami', name: 'Szalámi', enabled: true },
@@ -68,14 +71,24 @@ async function loadToppings() {
             baseToppings = baseSnapshot.val();
         } else {
             baseToppings = DEFAULT_BASE_TOPPINGS;
-            await set(baseToppingsRef, baseToppings);
+            // Try to save defaults, but don't fail if permission denied
+            try {
+                await set(baseToppingsRef, baseToppings);
+            } catch (e) {
+                console.warn('Could not save default base toppings to Firebase (permission denied). Check Firebase rules.');
+            }
         }
         
         if (extraSnapshot.exists()) {
             extraToppings = extraSnapshot.val();
         } else {
             extraToppings = DEFAULT_EXTRA_TOPPINGS;
-            await set(extraToppingsRef, extraToppings);
+            // Try to save defaults, but don't fail if permission denied
+            try {
+                await set(extraToppingsRef, extraToppings);
+            } catch (e) {
+                console.warn('Could not save default extra toppings to Firebase (permission denied). Check Firebase rules.');
+            }
         }
         
         toppingsLoaded = true;
@@ -129,7 +142,11 @@ async function saveToppingsConfig() {
         showToast('✅ Feltétek mentve és szinkronizálva!');
     } catch (error) {
         console.error('Error saving toppings:', error);
-        showToast('❌ Hiba történt a feltétek mentésekor');
+        if (error.message && error.message.includes('PERMISSION_DENIED')) {
+            showToast('❌ Firebase jogosultsági hiba! Add hozzá a "toppings" szabályt a Firebase Rules-hoz.');
+        } else {
+            showToast('❌ Hiba történt a feltétek mentésekor');
+        }
     }
 }
 
@@ -871,6 +888,7 @@ function loadOrders() {
     onValue(ordersRef, (snapshot) => {
         const data = snapshot.val();
         if (!data) {
+            cachedAllOrders = [];
             generateTimeSlots([]);
             document.getElementById('ordersList').innerHTML = '<div class="empty-state">Még nincsenek rendelések a mai napra.</div>';
             displayArchiveOrders([]);
@@ -888,6 +906,10 @@ function loadOrders() {
                 }
             }
         }
+
+        // Update cache
+        cachedAllOrders = allOrders;
+
         const active = allOrders.filter(o => !o.archived);
         const archived = allOrders.filter(o => o.archived);
         active.sort((a, b) => a.time.localeCompare(b.time) || a.slotKey.localeCompare(b.slotKey));
@@ -1545,6 +1567,10 @@ document.getElementById('saveSettingsBtn').addEventListener('click', async () =>
         showToast('❌ Hiba történt a mentés során: ' + error.message);
     }
 });
+
+// =====================================================================
+// FIX: Rendelés azonnali megjelenítése beküldés után (F5 nélkül)
+// =====================================================================
 document.getElementById('pizzaForm').addEventListener('submit', async (e) => {
     e.preventDefault();
 
@@ -1570,6 +1596,10 @@ document.getElementById('pizzaForm').addEventListener('submit', async (e) => {
             saveMyOrderToCookie(orderData.time, slotKey);
             savedSlots.push(slotKey);
             successCount++;
+
+            // --- FIX: Azonnal hozzáadjuk a cachedAllOrders-hez és frissítjük a UI-t ---
+            const newOrder = { ...orderData, slotKey, time: orderData.time };
+            cachedAllOrders.push(newOrder);
         } else {
             break;
         }
@@ -1580,6 +1610,10 @@ document.getElementById('pizzaForm').addEventListener('submit', async (e) => {
             ? '✅ Rendelés sikeresen leadva!'
             : `✅ ${successCount} rendelés sikeresen leadva!`;
         showToast(msg);
+
+        // Azonnal frissítjük a "Saját rendelésem" szekciót a cache alapján
+        displayMyOrders(cachedAllOrders);
+
         document.getElementById('pizzaForm').reset();
         updateQuantityOptions();
 
@@ -1590,6 +1624,7 @@ document.getElementById('pizzaForm').addEventListener('submit', async (e) => {
         });
     }
 });
+
 document.getElementById('time').addEventListener('change', (e) => {
     updateQuantityOptions();
 });
