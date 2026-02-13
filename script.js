@@ -1598,52 +1598,6 @@ loadSettings().then(() => {
     loadLogo();
 });
 
-// Logo upload button
-document.getElementById('uploadLogoBtn').addEventListener('click', async () => {
-    const fileInput = document.getElementById('logoUpload');
-    const file = fileInput.files[0];
-    
-    if (!file) {
-        showToast('❌ Kérlek válassz ki egy képet!');
-        return;
-    }
-    
-    if (!file.type.match(/image\/(png|jpeg|jpg)/)) {
-        showToast('❌ Csak PNG vagy JPG formátum engedélyezett!');
-        return;
-    }
-    
-    if (file.size > 2 * 1024 * 1024) {
-        showToast('❌ A kép maximum 2MB lehet!');
-        return;
-    }
-    
-    try {
-        await uploadLogo(file);
-        showToast('✅ Logo sikeresen feltöltve!');
-        fileInput.value = '';
-    } catch (error) {
-        console.error('Error uploading logo:', error);
-        showToast('❌ Hiba történt a feltöltés során');
-    }
-});
-
-// Logo remove button
-document.getElementById('removeLogoBtn').addEventListener('click', async () => {
-    if (confirm('Biztosan törölni szeretnéd a logót?')) {
-        await removeLogo();
-    }
-});
-
-// Logo click to open file selector (for easy upload)
-document.getElementById('siteLogo').addEventListener('click', () => {
-    if (!isAdminMode) return;
-    const fileInput = document.getElementById('logoUpload');
-    if (fileInput) {
-        fileInput.click();
-    }
-});
-
 // Check every minute if countdown should appear/disappear
 setInterval(checkPreOrderTime, 60000);
 
@@ -1652,3 +1606,48 @@ setTimeout(() => {
         showReorderPrompt();
     }
 }, 1500);
+
+// Logo upload button - wrapped in try-catch with proper element checking
+document.addEventListener('DOMContentLoaded', () => {
+    const uploadBtn = document.getElementById('uploadLogoBtn');
+    const removeBtn = document.getElementById('removeLogoBtn');
+    const fileInput = document.getElementById('logoUpload');
+    
+    if (uploadBtn) {
+        uploadBtn.addEventListener('click', async () => {
+            const file = fileInput?.files[0];
+            
+            if (!file) {
+                showToast('❌ Kérlek válassz ki egy képet!');
+                return;
+            }
+            
+            if (!file.type.match(/image\/(png|jpeg|jpg)/)) {
+                showToast('❌ Csak PNG vagy JPG formátum engedélyezett!');
+                return;
+            }
+            
+            if (file.size > 2 * 1024 * 1024) {
+                showToast('❌ A kép maximum 2MB lehet!');
+                return;
+            }
+            
+            try {
+                await uploadLogo(file);
+                showToast('✅ Logo sikeresen feltöltve!');
+                if (fileInput) fileInput.value = '';
+            } catch (error) {
+                console.error('Error uploading logo:', error);
+                showToast('❌ Hiba történt a feltöltés során: ' + error.message);
+            }
+        });
+    }
+    
+    if (removeBtn) {
+        removeBtn.addEventListener('click', async () => {
+            if (confirm('Biztosan törölni szeretnéd a logót?')) {
+                await removeLogo();
+            }
+        });
+    }
+});
