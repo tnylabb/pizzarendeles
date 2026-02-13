@@ -50,14 +50,8 @@ body::before {
     border-radius: 15px;
     box-shadow: 0 4px 20px var(--shadow);
     animation: slideInLeft 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
-    cursor: pointer;
     transition: all 0.3s ease;
     max-width: 250px;
-}
-
-.site-logo:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 25px var(--shadow);
 }
 
 .logo-image {
