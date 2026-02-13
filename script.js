@@ -17,20 +17,19 @@ const database = getDatabase(app);
 let isAdminMode = false;
 const ADMIN_PASSWORD = 'Nekimegadom';
 
-// Settings with localStorage persistence
-let MAX_SLOTS = parseInt(localStorage.getItem('pizza_max_slots')) || 4;
-let TIME_SLOT_INTERVAL = parseInt(localStorage.getItem('pizza_time_interval')) || 10;
-
-let OPEN_HOUR = parseInt(localStorage.getItem('pizza_open_hour')) || 17;
-let OPEN_MINUTE = parseInt(localStorage.getItem('pizza_open_minute')) || 30;
-let CLOSE_HOUR = parseInt(localStorage.getItem('pizza_close_hour')) || 20;
-let CLOSE_MINUTE = parseInt(localStorage.getItem('pizza_close_minute')) || 30;
-
-let PRE_ORDER_HOUR = parseInt(localStorage.getItem('pizza_preorder_hour')) || 16;
-let PRE_ORDER_MINUTE = parseInt(localStorage.getItem('pizza_preorder_minute')) || 0;
+// Settings will be loaded from Firebase
+let MAX_SLOTS = 4;
+let TIME_SLOT_INTERVAL = 10;
+let OPEN_HOUR = 17;
+let OPEN_MINUTE = 30;
+let CLOSE_HOUR = 20;
+let CLOSE_MINUTE = 30;
+let PRE_ORDER_HOUR = 16;
+let PRE_ORDER_MINUTE = 0;
 
 let previousOrderStatuses = {};
-let autoDeleteCompleted = localStorage.getItem('pizza_auto_delete') === 'true' || false;
+let autoDeleteCompleted = false;
+let settingsLoaded = false;
 
 const DEFAULT_BASE_TOPPINGS = [
     { id: 'sonka', name: 'Sonka', enabled: true },
@@ -52,6 +51,167 @@ const DEFAULT_EXTRA_TOPPINGS = [
 
 let baseToppings = JSON.parse(localStorage.getItem('pizza_base_toppings')) || DEFAULT_BASE_TOPPINGS;
 let extraToppings = JSON.parse(localStorage.getItem('pizza_extra_toppings')) || DEFAULT_EXTRA_TOPPINGS;
+
+// Load settings from Firebase
+async function loadSettings() {
+    try {
+        const settingsRef = ref(database, 'settings');
+        const snapshot = await get(settingsRef);
+        
+        if (snapshot.exists()) {
+            const settings = snapshot.val();
+            MAX_SLOTS = settings.maxSlots || 4;
+            TIME_SLOT_INTERVAL = settings.timeInterval || 10;
+            OPEN_HOUR = settings.openHour || 17;
+            OPEN_MINUTE = settings.openMinute || 30;
+            CLOSE_HOUR = settings.closeHour || 20;
+            CLOSE_MINUTE = settings.closeMinute || 30;
+            PRE_ORDER_HOUR = settings.preOrderHour || 16;
+            PRE_ORDER_MINUTE = settings.preOrderMinute || 0;
+            autoDeleteCompleted = settings.autoDelete || false;
+        }
+        settingsLoaded = true;
+        checkPreOrderTime();
+    } catch (error) {
+        console.error('Error loading settings:', error);
+        settingsLoaded = true;
+        checkPreOrderTime();
+    }
+}
+
+// Listen for settings changes in real-time
+function watchSettings() {
+    const settingsRef = ref(database, 'settings');
+    onValue(settingsRef, (snapshot) => {
+        if (snapshot.exists()) {
+            const settings = snapshot.val();
+            const oldPreOrderHour = PRE_ORDER_HOUR;
+            const oldPreOrderMinute = PRE_ORDER_MINUTE;
+            
+            MAX_SLOTS = settings.maxSlots || 4;
+            TIME_SLOT_INTERVAL = settings.timeInterval || 10;
+            OPEN_HOUR = settings.openHour || 17;
+            OPEN_MINUTE = settings.openMinute || 30;
+            CLOSE_HOUR = settings.closeHour || 20;
+            CLOSE_MINUTE = settings.closeMinute || 30;
+            PRE_ORDER_HOUR = settings.preOrderHour || 16;
+            PRE_ORDER_MINUTE = settings.preOrderMinute || 0;
+            autoDeleteCompleted = settings.autoDelete || false;
+            
+            // If pre-order time changed, update countdown
+            if (oldPreOrderHour !== PRE_ORDER_HOUR || oldPreOrderMinute !== PRE_ORDER_MINUTE) {
+                checkPreOrderTime();
+            }
+        }
+    });
+}
+
+// Save settings to Firebase
+async function saveSettings() {
+    try {
+        const settingsRef = ref(database, 'settings');
+        await set(settingsRef, {
+            maxSlots: MAX_SLOTS,
+            timeInterval: TIME_SLOT_INTERVAL,
+            openHour: OPEN_HOUR,
+            openMinute: OPEN_MINUTE,
+            closeHour: CLOSE_HOUR,
+            closeMinute: CLOSE_MINUTE,
+            preOrderHour: PRE_ORDER_HOUR,
+            preOrderMinute: PRE_ORDER_MINUTE,
+            autoDelete: autoDeleteCompleted
+        });
+    } catch (error) {
+        console.error('Error saving settings:', error);
+        throw error;
+    }
+}
+
+// Logo upload functionality
+async function uploadLogo(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+            try {
+                const logoRef = ref(database, 'logo');
+                await set(logoRef, {
+                    data: e.target.result,
+                    filename: file.name,
+                    uploadedAt: Date.now()
+                });
+                resolve(e.target.result);
+            } catch (error) {
+                reject(error);
+            }
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+    });
+}
+
+async function loadLogo() {
+    try {
+        const logoRef = ref(database, 'logo');
+        const snapshot = await get(logoRef);
+        
+        if (snapshot.exists()) {
+            const logoData = snapshot.val();
+            displayLogo(logoData.data);
+        }
+    } catch (error) {
+        console.error('Error loading logo:', error);
+    }
+}
+
+function displayLogo(dataUrl) {
+    const logoImage = document.getElementById('logoImage');
+    const logoPlaceholder = document.getElementById('logoPlaceholder');
+    const logoPreview = document.getElementById('logoPreview');
+    const logoPreviewImage = document.getElementById('logoPreviewImage');
+    
+    if (dataUrl) {
+        logoImage.src = dataUrl;
+        logoImage.style.display = 'block';
+        logoPlaceholder.style.display = 'none';
+        
+        if (logoPreview && logoPreviewImage) {
+            logoPreviewImage.src = dataUrl;
+            logoPreview.style.display = 'block';
+        }
+    } else {
+        logoImage.style.display = 'none';
+        logoPlaceholder.style.display = 'flex';
+        
+        if (logoPreview) {
+            logoPreview.style.display = 'none';
+        }
+    }
+}
+
+async function removeLogo() {
+    try {
+        const logoRef = ref(database, 'logo');
+        await remove(logoRef);
+        displayLogo(null);
+        showToast('🗑️ Logo törölve');
+    } catch (error) {
+        console.error('Error removing logo:', error);
+        showToast('❌ Hiba történt a törlés során');
+    }
+}
+
+// Watch for logo changes in real-time
+function watchLogo() {
+    const logoRef = ref(database, 'logo');
+    onValue(logoRef, (snapshot) => {
+        if (snapshot.exists()) {
+            const logoData = snapshot.val();
+            displayLogo(logoData.data);
+        } else {
+            displayLogo(null);
+        }
+    });
+}
 
 // Countdown timer
 let countdownInterval = null;
@@ -624,8 +784,6 @@ function getTodayKey() {
     return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
 }
 
-let pendingScrollCallback = null;
-
 function loadOrders() {
     const todayKey = getTodayKey();
     const ordersRef = ref(database, `orders/${todayKey}`);
@@ -664,11 +822,6 @@ function loadOrders() {
         displayArchiveOrders(archived);
         displayMyOrders(allOrders);
         displayStatistics(allOrders);
-
-        if (pendingScrollCallback) {
-            pendingScrollCallback();
-            pendingScrollCallback = null;
-        }
     });
 }
 
@@ -1314,7 +1467,7 @@ document.getElementById('settingsTab').addEventListener('click', () => {
     document.getElementById('settingsCloseMinute').value = CLOSE_MINUTE;
     renderToppingsManager();
 });
-document.getElementById('saveSettingsBtn').addEventListener('click', () => {
+document.getElementById('saveSettingsBtn').addEventListener('click', async () => {
     const newAutoDelete = document.getElementById('settingsAutoDelete').checked;
     const newTimeInterval = parseInt(document.getElementById('settingsTimeInterval').value);
     const newMaxSlots = parseInt(document.getElementById('settingsMaxSlots').value);
@@ -1360,16 +1513,6 @@ document.getElementById('saveSettingsBtn').addEventListener('click', () => {
         return;
     }
 
-    localStorage.setItem('pizza_auto_delete', newAutoDelete.toString());
-    localStorage.setItem('pizza_time_interval', newTimeInterval.toString());
-    localStorage.setItem('pizza_max_slots', newMaxSlots.toString());
-    localStorage.setItem('pizza_preorder_hour', newPreOrderHour.toString());
-    localStorage.setItem('pizza_preorder_minute', newPreOrderMinute.toString());
-    localStorage.setItem('pizza_open_hour', newOpenHour.toString());
-    localStorage.setItem('pizza_open_minute', newOpenMinute.toString());
-    localStorage.setItem('pizza_close_hour', newCloseHour.toString());
-    localStorage.setItem('pizza_close_minute', newCloseMinute.toString());
-
     autoDeleteCompleted = newAutoDelete;
     TIME_SLOT_INTERVAL = newTimeInterval;
     MAX_SLOTS = newMaxSlots;
@@ -1380,7 +1523,12 @@ document.getElementById('saveSettingsBtn').addEventListener('click', () => {
     CLOSE_HOUR = newCloseHour;
     CLOSE_MINUTE = newCloseMinute;
 
-    showToast('✅ Beállítások mentve! A változások érvényesítéséhez frissítsd az oldalt.');
+    try {
+        await saveSettings();
+        showToast('✅ Beállítások mentve és szinkronizálva minden eszközre!');
+    } catch (error) {
+        showToast('❌ Hiba történt a mentés során: ' + error.message);
+    }
 });
 document.getElementById('pizzaForm').addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -1422,19 +1570,13 @@ document.getElementById('pizzaForm').addEventListener('submit', async (e) => {
         document.getElementById('pizzaForm').reset();
         updateQuantityOptions();
 
-        pendingScrollCallback = () => {
+        // Scroll to my orders section immediately
+        setTimeout(() => {
             document.getElementById('myOrdersSection').scrollIntoView({
                 behavior: 'smooth',
                 block: 'start'
             });
-        };
-
-        setTimeout(() => {
-            if (pendingScrollCallback) {
-                pendingScrollCallback();
-                pendingScrollCallback = null;
-            }
-        }, 500);
+        }, 300);
     }
 });
 document.getElementById('time').addEventListener('change', (e) => {
@@ -1446,8 +1588,61 @@ loadOrders();
 updateQuantityOptions();
 updateFormSelects();
 
-// Check pre-order time on page load
-checkPreOrderTime();
+// Load settings from Firebase first
+loadSettings().then(() => {
+    // Watch for settings changes in real-time
+    watchSettings();
+    // Watch for logo changes
+    watchLogo();
+    // Load logo
+    loadLogo();
+});
+
+// Logo upload button
+document.getElementById('uploadLogoBtn').addEventListener('click', async () => {
+    const fileInput = document.getElementById('logoUpload');
+    const file = fileInput.files[0];
+    
+    if (!file) {
+        showToast('❌ Kérlek válassz ki egy képet!');
+        return;
+    }
+    
+    if (!file.type.match(/image\/(png|jpeg|jpg)/)) {
+        showToast('❌ Csak PNG vagy JPG formátum engedélyezett!');
+        return;
+    }
+    
+    if (file.size > 2 * 1024 * 1024) {
+        showToast('❌ A kép maximum 2MB lehet!');
+        return;
+    }
+    
+    try {
+        await uploadLogo(file);
+        showToast('✅ Logo sikeresen feltöltve!');
+        fileInput.value = '';
+    } catch (error) {
+        console.error('Error uploading logo:', error);
+        showToast('❌ Hiba történt a feltöltés során');
+    }
+});
+
+// Logo remove button
+document.getElementById('removeLogoBtn').addEventListener('click', async () => {
+    if (confirm('Biztosan törölni szeretnéd a logót?')) {
+        await removeLogo();
+    }
+});
+
+// Logo click to open file selector (for easy upload)
+document.getElementById('siteLogo').addEventListener('click', () => {
+    if (!isAdminMode) return;
+    const fileInput = document.getElementById('logoUpload');
+    if (fileInput) {
+        fileInput.click();
+    }
+});
 
 // Check every minute if countdown should appear/disappear
 setInterval(checkPreOrderTime, 60000);
