@@ -166,7 +166,7 @@ async function loadSettings() {
             CLOSE_MINUTE = settings.closeMinute || 30;
             PRE_ORDER_HOUR = settings.preOrderHour || 16;
             PRE_ORDER_MINUTE = settings.preOrderMinute || 0;
-            autoDeleteCompleted = settings.autoDelete || false;
+            = settings.autoDelete || false;
         }
         settingsLoaded = true;
         checkPreOrderTime();
@@ -188,13 +188,15 @@ function watchSettings() {
 
             MAX_SLOTS = settings.maxSlots || 4;
             TIME_SLOT_INTERVAL = settings.timeInterval || 10;
-            OPEN_HOUR = settings.openHour || 17;
-            OPEN_MINUTE = settings.openMinute || 30;
-            CLOSE_HOUR = settings.closeHour || 20;
-            CLOSE_MINUTE = settings.closeMinute || 30;
-            PRE_ORDER_HOUR = settings.preOrderHour || 16;
-            PRE_ORDER_MINUTE = settings.preOrderMinute || 0;
-            autoDeleteCompleted = settings.autoDelete || false;
+            OPEN_HOUR = settings.openHour ?? 17;
+            OPEN_MINUTE = settings.openMinute ?? 30;
+            CLOSE_HOUR = settings.closeHour ?? 20;
+            CLOSE_MINUTE = settings.closeMinute ?? 30;
+            PRE_ORDER_HOUR = settings.preOrderHour ?? 16;
+            PRE_ORDER_MINUTE = settings.preOrderMinute ?? 0;
+            MAX_SLOTS = settings.maxSlots ?? 4;
+            TIME_SLOT_INTERVAL = settings.timeInterval ?? 10;
+            autoDeleteCompleted = settings.autoDelete ?? false;
 
             settingsLoaded = true;
 
