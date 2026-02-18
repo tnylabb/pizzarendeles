@@ -166,7 +166,7 @@ async function loadSettings() {
             CLOSE_MINUTE = settings.closeMinute || 30;
             PRE_ORDER_HOUR = settings.preOrderHour || 16;
             PRE_ORDER_MINUTE = settings.preOrderMinute || 0;
-            = settings.autoDelete || false;
+            autoDeleteCompleted = settings.autoDelete || false;
         }
         settingsLoaded = true;
         checkPreOrderTime();
