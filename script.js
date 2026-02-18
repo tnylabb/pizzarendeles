@@ -61,12 +61,12 @@ async function loadToppings() {
     try {
         const baseToppingsRef = ref(database, 'toppings/base');
         const extraToppingsRef = ref(database, 'toppings/extra');
-        
+
         const [baseSnapshot, extraSnapshot] = await Promise.all([
             get(baseToppingsRef),
             get(extraToppingsRef)
         ]);
-        
+
         if (baseSnapshot.exists()) {
             baseToppings = baseSnapshot.val();
         } else {
@@ -78,7 +78,7 @@ async function loadToppings() {
                 console.warn('Could not save default base toppings to Firebase (permission denied). Check Firebase rules.');
             }
         }
-        
+
         if (extraSnapshot.exists()) {
             extraToppings = extraSnapshot.val();
         } else {
@@ -90,7 +90,7 @@ async function loadToppings() {
                 console.warn('Could not save default extra toppings to Firebase (permission denied). Check Firebase rules.');
             }
         }
-        
+
         toppingsLoaded = true;
         updateFormSelects();
     } catch (error) {
@@ -106,7 +106,7 @@ async function loadToppings() {
 function watchToppings() {
     const baseToppingsRef = ref(database, 'toppings/base');
     const extraToppingsRef = ref(database, 'toppings/extra');
-    
+
     onValue(baseToppingsRef, (snapshot) => {
         if (snapshot.exists()) {
             baseToppings = snapshot.val();
@@ -116,7 +116,7 @@ function watchToppings() {
             }
         }
     });
-    
+
     onValue(extraToppingsRef, (snapshot) => {
         if (snapshot.exists()) {
             extraToppings = snapshot.val();
@@ -133,12 +133,12 @@ async function saveToppingsConfig() {
     try {
         const baseToppingsRef = ref(database, 'toppings/base');
         const extraToppingsRef = ref(database, 'toppings/extra');
-        
+
         await Promise.all([
             set(baseToppingsRef, baseToppings),
             set(extraToppingsRef, extraToppings)
         ]);
-        
+
         showToast('✅ Feltétek mentve és szinkronizálva!');
     } catch (error) {
         console.error('Error saving toppings:', error);
@@ -155,7 +155,7 @@ async function loadSettings() {
     try {
         const settingsRef = ref(database, 'settings');
         const snapshot = await get(settingsRef);
-        
+
         if (snapshot.exists()) {
             const settings = snapshot.val();
             MAX_SLOTS = settings.maxSlots || 4;
@@ -185,7 +185,7 @@ function watchSettings() {
             const settings = snapshot.val();
             const oldPreOrderHour = PRE_ORDER_HOUR;
             const oldPreOrderMinute = PRE_ORDER_MINUTE;
-            
+
             MAX_SLOTS = settings.maxSlots || 4;
             TIME_SLOT_INTERVAL = settings.timeInterval || 10;
             OPEN_HOUR = settings.openHour || 17;
@@ -195,11 +195,11 @@ function watchSettings() {
             PRE_ORDER_HOUR = settings.preOrderHour || 16;
             PRE_ORDER_MINUTE = settings.preOrderMinute || 0;
             autoDeleteCompleted = settings.autoDelete || false;
-            
-            // Mark settings as loaded
+
             settingsLoaded = true;
-            
-            // If pre-order time changed, update countdown
+
+            generateTimeSlots();
+
             if (oldPreOrderHour !== PRE_ORDER_HOUR || oldPreOrderMinute !== PRE_ORDER_MINUTE) {
                 checkPreOrderTime();
             }
@@ -254,7 +254,7 @@ async function loadLogo() {
     try {
         const logoRef = ref(database, 'logo');
         const snapshot = await get(logoRef);
-        
+
         if (snapshot.exists()) {
             const logoData = snapshot.val();
             displayLogo(logoData.data);
@@ -268,18 +268,18 @@ function displayLogo(dataUrl) {
     const logoImage = document.getElementById('logoImage');
     const logoPreview = document.getElementById('logoPreview');
     const logoPreviewImage = document.getElementById('logoPreviewImage');
-    
+
     if (dataUrl) {
         logoImage.src = dataUrl;
         logoImage.style.display = 'block';
-        
+
         if (logoPreview && logoPreviewImage) {
             logoPreviewImage.src = dataUrl;
             logoPreview.style.display = 'block';
         }
     } else {
         logoImage.style.display = 'none';
-        
+
         if (logoPreview) {
             logoPreview.style.display = 'none';
         }
@@ -319,17 +319,17 @@ function checkPreOrderTime() {
     if (!settingsLoaded) {
         return false;
     }
-    
+
     const now = new Date();
     const currentMinutes = now.getHours() * 60 + now.getMinutes();
     const preOrderMinutes = PRE_ORDER_HOUR * 60 + PRE_ORDER_MINUTE;
-    
+
     // Admin can always see the page
     if (isAdminMode) {
         document.getElementById('countdownOverlay').classList.remove('show');
         return true;
     }
-    
+
     // If current time is before pre-order time, show countdown
     if (currentMinutes < preOrderMinutes) {
         showCountdown();
@@ -343,11 +343,11 @@ function checkPreOrderTime() {
 function showCountdown() {
     const overlay = document.getElementById('countdownOverlay');
     overlay.classList.add('show');
-    
+
     // Update the display time
     const preOrderTimeDisplay = document.getElementById('preOrderTimeDisplay');
     preOrderTimeDisplay.textContent = `${String(PRE_ORDER_HOUR).padStart(2, '0')}:${String(PRE_ORDER_MINUTE).padStart(2, '0')}`;
-    
+
     // Start countdown if not already running
     if (!countdownInterval) {
         updateCountdown();
@@ -358,7 +358,7 @@ function showCountdown() {
 function hideCountdown() {
     const overlay = document.getElementById('countdownOverlay');
     overlay.classList.remove('show');
-    
+
     if (countdownInterval) {
         clearInterval(countdownInterval);
         countdownInterval = null;
@@ -368,19 +368,19 @@ function hideCountdown() {
 function updateCountdown() {
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate(), PRE_ORDER_HOUR, PRE_ORDER_MINUTE, 0);
-    
+
     // If pre-order time has passed today, it means we should show the form
     if (now >= today) {
         hideCountdown();
         checkPreOrderTime();
         return;
     }
-    
+
     const diff = today - now;
     const hours = Math.floor(diff / (1000 * 60 * 60));
     const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
     const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-    
+
     document.getElementById('hoursLeft').textContent = String(hours).padStart(2, '0');
     document.getElementById('minutesLeft').textContent = String(minutes).padStart(2, '0');
     document.getElementById('secondsLeft').textContent = String(seconds).padStart(2, '0');
@@ -993,7 +993,7 @@ function displayStatistics(allOrders) {
         const status = getStatus(o);
         return status === 'pending' || status === 'preparing';
     });
-    
+
     // Completed orders: completed status OR archived orders that were completed
     const completedOrders = allOrders.filter(o => {
         const status = getStatus(o);
@@ -1350,15 +1350,13 @@ async function saveOrder(orderData) {
 
         for (let i = 1; i <= MAX_SLOTS; i++) {
             const key = `slot_${i}`;
-            const isPending = pending.includes(key);
-            if (!existing[key] && !isPending) {
-                if (!slotKey) slotKey = key;
-            } else if (existing[key] && existing[key].archived && !isPending) {
-                if (!slotKey) slotKey = key;
-            } else if (!isPending && existing[key] && !existing[key].archived) {
+            const isOccupied = existing[key] && !existing[key].archived;
+            const isPending = (pending || []).includes(key);
+
+            if (isOccupied || isPending) {
                 activeCount++;
-            } else if (isPending) {
-                activeCount++;
+            } else if (!slotKey) {
+                slotKey = key;
             }
         }
 
@@ -1723,26 +1721,26 @@ document.addEventListener('DOMContentLoaded', () => {
     const uploadBtn = document.getElementById('uploadLogoBtn');
     const removeBtn = document.getElementById('removeLogoBtn');
     const fileInput = document.getElementById('logoUpload');
-    
+
     if (uploadBtn) {
         uploadBtn.addEventListener('click', async () => {
             const file = fileInput?.files[0];
-            
+
             if (!file) {
                 showToast('❌ Kérlek válassz ki egy képet!');
                 return;
             }
-            
+
             if (!file.type.match(/image\/(png|jpeg|jpg)/)) {
                 showToast('❌ Csak PNG vagy JPG formátum engedélyezett!');
                 return;
             }
-            
+
             if (file.size > 2 * 1024 * 1024) {
                 showToast('❌ A kép maximum 2MB lehet!');
                 return;
             }
-            
+
             try {
                 await uploadLogo(file);
                 showToast('✅ Logo sikeresen feltöltve!');
@@ -1753,7 +1751,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
-    
+
     if (removeBtn) {
         removeBtn.addEventListener('click', async () => {
             if (confirm('Biztosan törölni szeretnéd a logót?')) {
