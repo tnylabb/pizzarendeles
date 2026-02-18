@@ -1555,12 +1555,12 @@ document.getElementById('saveSettingsBtn').addEventListener('click', async () =>
     const newAutoDelete = document.getElementById('settingsAutoDelete').checked;
     const newTimeInterval = parseInt(document.getElementById('settingsTimeInterval').value);
     const newMaxSlots = parseInt(document.getElementById('settingsMaxSlots').value);
-    const newPreOrderHour = parseInt(document.getElementById('settingsPreOrderHour').value);
-    const newPreOrderMinute = parseInt(document.getElementById('settingsPreOrderMinute').value);
-    const newOpenHour = parseInt(document.getElementById('settingsOpenTime').value);
-    const newOpenMinute = parseInt(document.getElementById('settingsOpenMinute').value);
-    const newCloseHour = parseInt(document.getElementById('settingsCloseTime').value);
-    const newCloseMinute = parseInt(document.getElementById('settingsCloseMinute').value);
+    const newOpenHour = parseInt(document.getElementById('settingsOpenTime').value) || 0;
+    const newOpenMinute = parseInt(document.getElementById('settingsOpenMinute').value) || 0;
+    const newCloseHour = parseInt(document.getElementById('settingsCloseTime').value) || 0;
+    const newCloseMinute = parseInt(document.getElementById('settingsCloseMinute').value) || 0;
+    const newPreOrderHour = parseInt(document.getElementById('settingsPreOrderHour').value) || 0;
+    const newPreOrderMinute = parseInt(document.getElementById('settingsPreOrderMinute').value) || 0;
 
     if (newTimeInterval < 5 || newTimeInterval > 30) {
         showToast('❌ Az időslot intervallum 5-30 perc között lehet');
